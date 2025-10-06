@@ -1,0 +1,68 @@
+{
+  "architecture": {
+    "platform": "linux",
+    "os": "ubuntu24.04",
+    "target": "skylake"
+  },
+  "specs": [
+    {
+      "name": "gcc",
+      "version": "11.2.0",
+      "external_path": "/usr/local/gcc-11.2.0",
+      "external_modules": ["gcc/11.2.0"]
+    },
+    {
+      "name": "ucx",
+      "version": "1.15.0",
+      "external_path": "/opt/ucx/1.15.0",
+      "external_modules": ["ucx/1.15.0"],
+      "dependencies": [
+        {
+          "name": "gcc",
+          "depflags": ["BUILD"],
+          "virtuals": []
+        }
+      ]
+    },
+    {
+      "name": "openmpi",
+      "version": "5.0.6",
+      "variants": "fabrics=ucx,psm,psm2,verbs",
+      "external_path": "/path/to/openmpi",
+      "external_modules": ["eessi/openmpi/5.0.6"],
+      "dependencies": [
+        {
+          "name": "ucx",
+          "depflags": ["BUILD", "LINK"],
+          "virtuals": []
+        }
+      ]
+    },
+    {
+      "name": "hdf5",
+      "version": "3.31.6",
+      "external_path": "/path/to/hdf5",
+      "external_modules": ["eessi/hdf5/3.31.6"],
+      "dependencies": [
+        {
+          "name": "openmpi",
+          "depflags": ["BUILD", "LINK"],
+          "virtuals": ["mpi"]
+        }
+      ]
+    },
+    {
+      "name": "netcdf-c",
+      "version": "4.9.0",
+      "external_path": "/path/to/netcdf",
+      "external_modules": ["netcdf/4.9.0"],
+      "dependencies": [
+        {
+          "name": "hdf5",
+          "depflags": ["BUILD", "LINK"],
+          "virtuals": []
+        }
+      ]
+    }
+  ]
+}

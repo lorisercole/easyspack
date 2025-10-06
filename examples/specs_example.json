@@ -1,0 +1,29 @@
+{
+  "architecture": {
+    "platform": "linux",
+    "os": "ubuntu24.04",
+    "target": "skylake"
+  },
+  "specs": [
+    {
+      "name": "openmpi",
+      "version": "5.0.6",
+      "variants": "fabrics=ucx,psm,psm2,verbs",
+      "external_path": "/path/to/openmpi",
+      "external_modules": ["eessi/openmpi/5.0.6"]
+    },
+    {
+      "name": "hdf5",
+      "version": "3.31.6",
+      "external_path": "/path/to/hdf5",
+      "external_modules": ["eessi/hdf5/3.31.6"],
+      "dependencies": [
+        {
+          "name": "openmpi",
+          "depflags": ["BUILD", "LINK"],
+          "virtuals": ["mpi"]
+        }
+      ]
+    }
+  ]
+}
