@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for the spec_loader package.
+Setup script for the ebspack package.
 """
 
 from setuptools import setup, find_packages

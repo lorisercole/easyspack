@@ -16,7 +16,7 @@ This package provides a clean, declarative way to define Spack package specifica
 
 ```
 ebspack/
-├── spec_loader/
+├── ebspack/
 │   ├── __init__.py          # Package initialization
 │   ├── loader.py            # Main SpecLoader class
 │   ├── models.py            # Data models (dataclasses)
@@ -25,7 +25,7 @@ ebspack/
 ├── examples/
 │   ├── specs_example.json       # Simple example configuration
 │   ├── complex_example.json     # Complex multi-dependency example
-│   └── use_spec_loader.py       # Usage examples
+│   └── use_ebspack.py       # Usage examples
 ├── add_pkg.py               # Original example script
 └── README.md                # This file
 ```
@@ -131,7 +131,7 @@ Create a file `specs.json`:
 ```python
 #!/usr/bin/env spack-python
 
-from spec_loader import SpecLoader
+from ebspack import SpecLoader
 
 # Create loader instance with database path
 loader = SpecLoader(database_path="/home/user/spack/databases/my_db")
@@ -155,7 +155,7 @@ loader.add_to_database(dry_run=True)
 ```python
 #!/usr/bin/env spack-python
 
-from spec_loader import SpecLoader
+from ebspack import SpecLoader
 
 # Specify custom database path
 loader = SpecLoader(database_path="/custom/path/to/database")
@@ -225,7 +225,7 @@ The package provides custom exceptions:
 - `DatabaseError`: Database operation errors
 
 ```python
-from spec_loader import SpecLoader, ValidationError, DatabaseError
+from ebspack import SpecLoader, ValidationError, DatabaseError
 
 try:
     loader = SpecLoader()
@@ -243,13 +243,13 @@ See the `examples/` directory for:
 
 1. **specs_example.json**: Simple two-package example (openmpi + hdf5)
 2. **complex_example.json**: Multi-level dependency chain (gcc → ucx → openmpi → hdf5 → netcdf)
-3. **use_spec_loader.py**: Runnable Python examples showing various usage patterns
+3. **use_ebspack.py**: Runnable Python examples showing various usage patterns
 
 Run the examples:
 
 ```bash
 cd examples
-spack-python use_spec_loader.py
+spack-python use_ebspack.py
 ```
 
 ## Development

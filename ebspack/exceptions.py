@@ -1,10 +1,10 @@
 """
-Custom exceptions for the spec_loader package.
+Custom exceptions for the ebspack package.
 """
 
 
 class SpecLoaderError(Exception):
-    """Base exception for all spec_loader errors."""
+    """Base exception for all ebspack errors."""
     pass
 
 

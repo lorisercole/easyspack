@@ -4,7 +4,7 @@
 
 ### Initialization
 ```python
-from spec_loader import SpecLoader
+from ebspack import SpecLoader
 
 # Use default database path
 loader = SpecLoader()
@@ -150,7 +150,7 @@ spec = loader.get_spec("hdf5")  # Returns Spec or None
 ## Exception Handling
 
 ```python
-from spec_loader import SpecLoader, ValidationError, DatabaseError
+from ebspack import SpecLoader, ValidationError, DatabaseError
 
 try:
     loader = SpecLoader()

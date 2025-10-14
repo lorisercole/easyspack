@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Unit tests for the spec_loader package.
+Unit tests for the ebspack package.
 """
 
 import pytest
@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 import tempfile
 
-from spec_loader import SpecLoader, ValidationError, DatabaseError
-from spec_loader.models import SpecConfig, DependencyConfig, ArchitectureConfig
+from ebspack import SpecLoader, ValidationError, DatabaseError
+from ebspack.models import SpecConfig, DependencyConfig, ArchitectureConfig
 
 
 class TestSpecLoader:

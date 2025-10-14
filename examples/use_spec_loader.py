@@ -1,12 +1,12 @@
 #!/usr/bin/env spack-python
 """
-Example usage of the spec_loader package.
+Example usage of the ebspack package.
 """
 
 import sys
 from pathlib import Path
 
-# Add parent directory to path to import spec_loader
+# Add parent directory to path to import ebspack
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ebspack import SpecLoader
@@ -21,7 +21,7 @@ def main():
     print("=" * 60)
     
     # Create loader with custom database path (or use default)
-    loader = SpecLoader(database_path="/home/lercole/spack/databases/test1_db")
+    loader = SpecLoader(database_path="/home/lercole/ebspack/spack/upstreams/test-1")
     # Or use default: loader = SpecLoader()
     
     # Load configuration
