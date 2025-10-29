@@ -5,8 +5,6 @@ Data models for spec configuration.
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
 
-from spack.spec import ArchSpec, Spec
-
 
 @dataclass
 class ArchitectureConfig:
@@ -46,20 +44,20 @@ class SpecConfig:
             spec_str += f" {self.variants}"
         return spec_str
     
-    def get_spack_spec(self) -> Spec:
-        """Generate a Spack Spec object."""
-        spec_str = self.get_spec_string()
-        spec = Spec(
-            self.get_spec_string(),
-            external_path=self.external_path,
-            external_modules=self.external_modules,
-        )
-        spec.architecture = ArchSpec(self.architecture.to_tuple())
+    # def get_spack_spec(self) -> Spec:
+    #     """Generate a Spack Spec object."""
+    #     spec_str = self.get_spec_string()
+    #     spec = Spec(
+    #         self.get_spec_string(),
+    #         external_path=self.external_path,
+    #         external_modules=self.external_modules,
+    #     )
+    #     spec.architecture = ArchSpec(self.architecture.to_tuple())
 
-        # set external prefix if provided
-        if self.external_path:
-            spec.external_prefix = self.external_path
-        return spec
+    #     # set external prefix if provided
+    #     if self.external_path:
+    #         spec.external_prefix = self.external_path
+    #     return spec
 
 
 @dataclass

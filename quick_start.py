@@ -17,6 +17,12 @@ spec_dict = {
         "target": "skylake"
     },
     "specs": [
+        # {
+        #     "name": "compiler-wrapper",
+        #     "version": "1.0",
+        #     "variants": "",
+        #     "external_path": "/home/lercole/ebspack/spack/compiler-wrapper",
+        # },
         {
             "name": "glibc",
             "version": "2.39",
@@ -24,73 +30,125 @@ spec_dict = {
             "external_path": "/usr",
             "dependencies": [],
         },
+        {  # SYSTEM COMPILER
+            "name": "gcc",
+            "version": "12.4.0",
+            "variants": "",
+            "external_path": "/usr",
+            "dependencies": [],
+        },
         {
             "name": "gcc-runtime",
-            "version": "13.3.0",  # EBVERSIONGCC
-            # "variants": "build_system=generic",
-            "external_path": "/home/lercole/ebspack/software/GCCcore/13.3.0", # EBROOTGCCCORE or EBROOTGCC
-            # "external_modules": ["/home/lercole/ebspack/modules/all/GCC/13.3.0.lua"]
+            "version": "12.4.0",
+            "variants": "",
+            "external_path": "/usr",
             "dependencies": [
                 {
-                    "name": "glibc",
+                    "name": "glibc@2.39",
                     "depflags": ["LINK"],
                     "virtuals": ["libc"],
                 },
+                {
+                    "name": "gcc@12.4.0",  # SYSTEM COMPILER
+                    "depflags": ["BUILD"],
+                },
             ],
         },
-        {
+        {  # EB GCC COMPILER
             "name": "gcc",
             "version": "13.3.0",  # EBVERSIONGCC
             "variants": "",
             "external_path": "/home/lercole/ebspack/software/GCCcore/13.3.0", # EBROOTGCCCORE or EBROOTGCC
-            # "external_modules": ["/home/lercole/ebspack/modules/all/GCC/13.3.0.lua"]
+            # "external_modules": ["/home/lercole/ebspack/modules/all/GCC/13.3.0.lua"],
+            "dependencies": [
+                # {
+                #     "name": "gcc-runtime@12.4.0",
+                #     "depflags": ["LINK"],
+                # },
+                # {
+                #     "name": "glibc@2.39",
+                #     "depflags": ["LINK"],
+                #     "virtuals": ["libc"],
+                # },
+                # {
+                #     "name": "gcc@12.4.0",  # SYSTEM COMPILER
+                #     "depflags": ["BUILD"],
+                #     "virtuals": ["c", "cxx"],
+                # },
+                # {
+                #     "name": "compiler-wrapper",
+                #     "depflags": ["BUILD"],
+                # },
+                # there are many more link dependencies
+            ],
+        },
+        {
+            "name": "gcc-runtime",
+            "version": "13.3.0",  # EBVERSIONGCC
+            "variants": "",
+            "external_path": "/home/lercole/ebspack/software/GCCcore/13.3.0", # EBROOTGCCCORE or EBROOTGCC
+            # "external_modules": ["/home/lercole/ebspack/modules/all/GCC/13.3.0.lua"],
             "dependencies": [
                 {
-                    "name": "gcc-runtime",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc",
+                    "name": "glibc@2.39",
                     "depflags": ["LINK"],
                     "virtuals": ["libc"],
+                },
+                {
+                    "name": "gcc@13.3.0",  # EB GCC COMPILER
+                    "depflags": ["BUILD"],
                 },
             ],
         },
-
         {
             "name": "gmake",
             "version": "4.4.1",  # EBVERSIONMAKE
-            "variants": "~guile",
+            "variants": "",
             "external_path": "/home/lercole/ebspack/software/make/4.4.1-GCCcore-13.3.0", # EBROOTMAKE
+            "external_modules": ["/home/lercole/ebspack/modules/all/make/4.4.1-GCCcore-13.3.0.lua"],
             "dependencies": [
                 {
-                    "name": "gcc-runtime",
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
                     "depflags": ["LINK"],
                 },
                 {
-                    "name": "glibc",
+                    "name": "glibc@2.39",
                     "depflags": ["LINK"],
                     "virtuals": ["libc"],
                 },
+                # {
+                #     "name": "compiler-wrapper",
+                #     "depflags": ["BUILD"],
+                # },
             ],
         },
         {
             "name": "cmake",
             "version": "3.31.8",  # EBVERSIONCMAKE
-            "variants": "+ncurses",
+            "variants": "",
             "external_path": "/home/lercole/ebspack/software/cmake/3.31.8-GCCcore-13.3.0", # EBROOTCMAKE
             "dependencies": [
                 {
-                    "name": "gcc-runtime",
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
                     "depflags": ["LINK"],
                 },
                 {
-                    "name": "glibc",
+                    "name": "glibc@2.39",
                     "depflags": ["LINK"],
                     "virtuals": ["libc"],
                 },
                 {
-                    "name": "gmake",    # not for EasyBuild !
+                    "name": "gmake@4.4.1",    # not for EasyBuild !
                     "depflags": ["BUILD", "RUN"],
                 },
                 # {
@@ -115,14 +173,14 @@ spec_dict = {
 
 # Create specloader and add to database
 specloader = SpecLoader(database_path="/home/lercole/ebspack/spack/upstreams/test-1")
-specloader.load_configuration(spec_dict)
+specloader.load_configuration(spec_dict)    
 specloader.build_specs()
 
 # Show what will be added
 print("Specs that will be added:")
-for name in specloader.list_specs():
-    spec = specloader.get_spec(name)
-    print(f"  {name}: {spec}  [{spec.architecture}]")
+for key in specloader.list_specs():
+    spec = specloader.get_spec(key)
+    print(f"  {key}: {spec}  [{spec.architecture}]")
     if spec.dependencies():
         print(f"    dependencies:  {[d.name for d in spec.dependencies()]}")
 
@@ -130,7 +188,7 @@ for name in specloader.list_specs():
 specloader.add_to_database()
 
 # Optionally add GCC runtime externals (if gcc-runtime spec is defined)
-specloader.add_gcc_runtime_externals()
+# specloader.add_gcc_runtime_externals()
 
 # COMPILERS
 new_compilers = spack.compilers.config.find_compilers(
@@ -140,6 +198,7 @@ new_compilers = spack.compilers.config.find_compilers(
     scope='user',  # or 'site', 'system', etc.
     max_workers=4  # parallel search
 )
+print("Compilers found: ", new_compilers)
 
 if new_compilers:
     n = len(new_compilers)
