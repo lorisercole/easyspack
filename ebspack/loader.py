@@ -5,11 +5,12 @@ Main loader module for adding specs to Spack database.
 import json
 import jsonschema
 from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Iterator, List, Optional, Union
 
 import spack.config
-import spack.deptypes as dt
 import spack.database
+import spack.deptypes as dt
+import spack.detection
 from spack.spec import Spec, ArchSpec, FlagMap
 
 from . import models
@@ -65,19 +66,32 @@ def build_spack_spec(spec_config: models.SpecConfig) -> Spec:
     Returns:
         A Spack Spec object built from the SpecConfig
     """
-    # spec = Spec.from_detection(
-    spec = Spec(
+    # if spec_config.name in ("gcc", "glibc"):  # must be external
+    #     spec = Spec.from_detection(
+    #         spec_config.get_spec_string(),
+    #         external_path=spec_config.external_path,
+    #         external_modules=spec_config.external_modules,
+    #         extra_attributes=spec_config.extra_attributes,
+    #     )
+    # else:
+    #     spec = Spec(spec_config.get_spec_string())
+    #     spec._prefix = spec_config.external_path
+    #     # DOES NOT WORK: Database._add does not write paths that do not follow spack's path layout,
+    #     # it does only if the an external_path is set.
+    # set external prefix if provided -- USELESS
+    # if spec_config.external_path:
+    #     spec.external_prefix = spec_config.external_path
+
+
+    spec = Spec.from_detection(
         spec_config.get_spec_string(),
         external_path=spec_config.external_path,
-        # external_modules=spec_config.external_modules,
+        external_modules=spec_config.external_modules,
+        extra_attributes=spec_config.extra_attributes,
     )
     populate_variants_with_defaults(spec)
     # spec.architecture = ArchSpec(spec_config.architecture.to_tuple())
     spec._set_architecture(**spec_config.architecture.__dict__)
-
-    # set external prefix if provided
-    if spec_config.external_path:
-        spec.external_prefix = spec_config.external_path
 
     # print(f"Built spec: {spec.__dict__}")
     return spec
@@ -111,6 +125,12 @@ class SpecLoader:
         
         # Initialize database with the configured path
         self._database = spack.database.Database(self._database_path)
+        print("LAYOUT:", self._database.layout)
+
+    @property
+    def specs_map(self) -> Dict[str, Spec]:
+        """Get the internal specs map."""
+        return self._specs_map
 
     def _parse_configuration(self, data: dict) -> models.SpecsConfiguration:
         """Parse the validated configuration data into model objects."""
@@ -121,9 +141,9 @@ class SpecLoader:
         specs = []
         for spec_data in data["specs"]:
 
-            # Parse dependencies
+            # Parse dependencies, sort them by name
             dependencies = []
-            for dep_data in spec_data.get("dependencies", []):
+            for dep_data in sorted(spec_data.get("dependencies", []), key=lambda d: d.get("name", "")):
                 dependencies.append(models.DependencyConfig(**dep_data))
 
             # Create spec config
@@ -132,7 +152,8 @@ class SpecLoader:
                 version=spec_data["version"],
                 variants=spec_data.get("variants"),
                 external_path=spec_data.get("external_path"),
-                external_modules=spec_data.get("external_modules", []),
+                external_modules=spec_data.get("external_modules"), #, []),
+                extra_attributes=spec_data.get("extra_attributes"),
                 dependencies=dependencies,
                 architecture=arch_config,
             )
@@ -210,10 +231,7 @@ class SpecLoader:
 
     def build_specs(self) -> Dict[str, Spec]:
         """
-        Build all Spec objects from the configuration.
-
-        Returns:
-            Dictionary mapping spec names to Spec objects
+        Build all Spec objects from the configuration into self.specs_map.
 
         Raises:
             ValidationError: If configuration is not loaded or invalid
@@ -244,11 +262,9 @@ class SpecLoader:
         # name, version, arch, namespace, parameters (variants, flags), package_hash,
         # external, and dependencies will determine the DAG hash.
         for spec in self._specs_map.values():
-            print(f"Concretizing spec: {spec.__dict__}")
+            print(f"Concretizing spec: {spec.to_node_dict()} -- path: {spec._prefix}")
             spec._finalize_concretization()
             # spec._mark_concrete()
-
-        return self._specs_map
 
     def add_to_database(self, specs_to_add: Optional[List[str]] = None, dry_run: bool = False) -> None:
         """
@@ -262,7 +278,7 @@ class SpecLoader:
             DatabaseError: If database operations fail
             ValidationError: If specs are not built yet
         """
-        if not self._specs_map:
+        if not self.specs_map:
             self.build_specs()
 
         if self._database is None:
@@ -276,20 +292,20 @@ class SpecLoader:
         if dry_run:
             print(f"Dry run: Would add {len(specs_to_add)} spec(s) to database:")
             for spec_key in specs_to_add:
-                print(f"  - {spec_key}: {self._specs_map[spec_key]}")
+                print(f"  - {spec_key}: {self.specs_map[spec_key]}")
             return
 
         # Add specs to database
         try:
             with self._database.write_transaction():
                 for spec_key in specs_to_add:
-                    if spec_key not in self._specs_map:
+                    if spec_key not in self.specs_map:
                         raise ValidationError(f"Spec '{spec_key}' not found in configuration")
 
-                    spec = self._specs_map[spec_key]
+                    spec = self.specs_map[spec_key]
                     self._database.add(spec)
                     print(f"Added spec: {spec_key}")
-                    print(f"     {spec.__dict__}")
+                    print(f"     {spec.to_node_dict()} -- path: {spec.prefix}")
         except Exception as e:
             raise DatabaseError(f"Failed to add specs to database: {e}")
 
@@ -303,19 +319,34 @@ class SpecLoader:
         Returns:
             Spec object or None if not found
         """
-        # FIXME : _specs_map uses key with version
-        return self._specs_map.get(name)
+        # FIXME : specs_map uses key with version
+        return self.specs_map.get(name)
 
-    def list_specs(self) -> List[str]:
+    def iter_specs(self) -> Iterator[Spec]:
         """
-        Get list of all spec names in the configuration.
+        Get an iterator over all Spec objects in the configuration.
         
         Returns:
-            List of spec keys (name@version)
+            Iterator of Spec objects
+        """
+        return iter(self.specs_map.values())
+    
+    def list_compilers(self) -> List[Spec]:
+        """
+        Get list of all compiler specs in the configuration.
+        
+        Returns:
+            List of Spec objects for compilers
         """
         if self.config is None:
             return []
-        return [spec_map_key(spec) for spec in self.config.specs]
+        compilers = []
+        for spec_config in self.config.specs:
+            if spec_config.extra_attributes and "compilers" in spec_config.extra_attributes:
+                spec = self.specs_map.get(spec_map_key(spec_config))
+                if spec:
+                    compilers.append(spec)
+        return compilers
 
     def add_gcc_runtime_externals(self, scope: str = "user") -> None:
         """Add all gcc-runtime packages from configuration to packages.yaml.
@@ -375,3 +406,21 @@ class SpecLoader:
         # Write back to configuration
         spack.config.set("packages", packages, scope=scope)
         print(f"Updated gcc-runtime configuration in '{scope}' scope")
+
+
+def add_packages_to_config(specs: Iterator[Spec], *, scope=None) -> None:
+    """
+    Add a list of packages to the packages.yaml configuration file, at the required scope.
+    This ensures that Spack treats these packages as external.
+
+    Args:
+        specs (Iterator[Spec]): An iterator of `Spec` objects to be added to the configuration.
+        scope (Optional[str]): The configuration scope where the packages should be added.
+            If not provided, the default scope is used.
+    """
+    # Group specs by name in dictionary
+    by_name: Dict[str, List[spack.spec.Spec]] = {}
+    for spec in specs:
+        by_name.setdefault(spec.name, []).append(spec)
+
+    spack.detection.update_configuration(by_name, buildable=True, scope=scope)

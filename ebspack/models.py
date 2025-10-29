@@ -33,8 +33,9 @@ class SpecConfig:
     version: str
     architecture: ArchitectureConfig
     variants: Optional[str] = None
-    external_path: Optional[str] = None
+    external_path: str = None
     external_modules: List[str] = field(default_factory=list)
+    extra_attributes: Optional[Dict] = None
     dependencies: List[DependencyConfig] = field(default_factory=list)
 
     def get_spec_string(self) -> str:
