@@ -33,6 +33,7 @@ class SpecConfig:
     version: str
     architecture: ArchitectureConfig
     variants: Optional[str] = None
+    explicit: Optional[bool] = False
     external_path: str = None
     external_modules: List[str] = field(default_factory=list)
     extra_attributes: Optional[Dict] = None
