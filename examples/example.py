@@ -5,7 +5,7 @@
 # - all packages should have runtime and link dependencies declared
 # - the only build dependency needed is the compiler with c/cxx/fortran virtuals, this is shows which compiler was used to build
 # - dependencies are automatically sorted by name by the loader
-# - I think we can skip dependencies that are not needed for EasyBuild
+# - Skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems
 # - default variants are automatically added by the loader if not specified. This seems the best approach with the current solver
 
 example_dict = {
@@ -170,11 +170,77 @@ example_dict = {
             ],
         },
         {
+            "name": "zlib",
+            "version": "1.3.1",  # EBVERSIONZLIB
+            "variants": "",
+            "external_path": "/home/lercole/ebspack/software/zlib/1.3.1-GCCcore-13.3.0", # EBROOTZLIB
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        {
+            "name": "libarchive",
+            "version": "3.7.4",  # EBVERSIONLIBARCHIVE
+            "variants": "",
+            "external_path": "/home/lercole/ebspack/software/libarchive/3.7.4-GCCcore-13.3.0", # EBROOTLIBARCHIVE
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        {
+            "name": "bzip2",
+            "version": "1.0.8",  # EBVERSIONBZIP2
+            "variants": "",
+            "external_path": "/home/lercole/ebspack/software/bzip2/1.0.8-GCCcore-13.3.0", # EBROOTBZIP2
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        {
             "name": "cmake",
             "version": "3.31.8",  # EBVERSIONCMAKE
             "variants": "",
             "explicit": True,
-            "external_path": "/home/lercole/ebspack/software/cmake/3.31.8-GCCcore-13.3.0", # EBROOTCMAKE
+            "external_path": "/home/lercole/ebspack/software/CMake/3.31.8-GCCcore-13.3.0", # EBROOTCMAKE
             "dependencies": [
                 {
                     "name": "gcc@13.3.0",
@@ -202,12 +268,20 @@ example_dict = {
                 #     "name": "ncurses",
                 #     "depflags": ["BUILD", "LINK"],
                 # },
-                # {
-                #     "name": "zlib-ng",   # but in EasyBuild it depends on zlib
-                #     "depflags": ["BUILD", "LINK"],
-                # },
+                {
+                    "name": "zlib@1.3.1",   # in Spack it depends on the virtual zlib-api (zlib or zlib-ng)
+                    "depflags": ["BUILD", "LINK"],
+                },
                 
                 # libarchive, bzip2, openssl 3 --> not dependencies in cmake Spack package
+                {
+                    "name": "libarchive@3.7.4",  # in Spack it is not needed if +ownlib
+                    "depflags": ["BUILD", "LINK"],
+                },
+                {
+                    "name": "bzip2@1.0.8",   # in Spack it depends on the virtual zlib-api (zlib or zlib-ng)
+                    "depflags": ["LINK"],
+                },
             ],
         },
 

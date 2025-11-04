@@ -135,6 +135,9 @@ class SpecLoader:
         # Parse specs
         specs = []
         for spec_data in data["specs"]:
+            # check if external_path is a valid path
+            if not Path(spec_data["external_path"]).exists():
+                raise ValidationError(f"External path does not exist: {spec_data['external_path']}")
 
             # Parse dependencies, sort them by name
             dependencies = []
