@@ -8,19 +8,25 @@ import jsonschema
 from pathlib import Path
 from typing import Dict, Iterator, List, Optional, Union
 
+import spack.cmd.external
 import spack.deptypes as dt
 import spack.detection
-from spack.spec import Spec, ArchSpec, FlagMap, substitute_abstract_variants
+from spack.spec import Spec, FlagMap, substitute_abstract_variants
+from spack.util.libc import libc_from_dynamic_linker
 
 from . import models
 from .database import Database
 from .schema import SPEC_SCHEMA
 from .exceptions import ValidationError, DatabaseError
+import re
 
 logger = logging.getLogger(__name__)
 
 # Packages that must be treated as external to be reused properly by Spack
 DEFAULT_EXTERNAL_PACKAGES = ("gcc", "glibc")
+DEFAULT_DETECTED_TAGS = ["detectable"]
+NOT_IMPLEMENTED_COMPILERS = ("acfl", "aocc", "apple-clang", "cce", "fj", "intel-oneapi-compilers",
+                             "intel-oneapi-compilers-classic", "llvm", "msvc", "nvhpc", "xl")
 
 def populate_variants_with_defaults(spec: Spec) -> None:
     """Populate spec with all variants from package definition using defaults.
@@ -61,7 +67,7 @@ def populate_variants_with_defaults(spec: Spec) -> None:
         if flag_name not in spec.compiler_flags:
             spec.compiler_flags[flag_name] = []
 
-def build_spack_spec(spec_config: models.SpecConfig) -> Spec:
+def build_spack_spec(spec_config: models.SpecConfig, external_packages: Optional[List[str]] = ()) -> Spec:
     """Build a Spack Spec object from a SpecConfig.
     
     Args:
@@ -70,7 +76,7 @@ def build_spack_spec(spec_config: models.SpecConfig) -> Spec:
     Returns:
         A Spack Spec object built from the SpecConfig
     """
-    if spec_config.name in DEFAULT_EXTERNAL_PACKAGES:  # must be external
+    if spec_config.name in external_packages:  # must be external
         spec = Spec.from_detection(
             spec_config.get_spec_string(),
             external_path=spec_config.external_path,
@@ -88,12 +94,30 @@ def build_spack_spec(spec_config: models.SpecConfig) -> Spec:
 
     spec._set_architecture(**spec_config.architecture.__dict__)
 
-    logger.debug(f"Built spec: {spec.__dict__}")
+    logger.debug(f"Built spec: {spec.to_node_dict()}")
     return spec
 
-def spec_map_key(spec_config: models.SpecConfig) -> str:
-    """Generate a unique key for the spec map based on name and version."""
-    return f"{spec_config.name}@{spec_config.version}"
+def detect_packages(
+    paths: List[Path],
+    *, names: Optional[List[str]] = None, tags: Optional[List[str]] = None, exclude: Optional[List[str]] = None,
+) -> Dict[str, List[Spec]]:
+    """Detect packages and return a list of Spec
+
+    Args:
+        names: name of packages to include (optional, None = all of them)
+        tags:  search packages with these tags (e.g. "detectable" (default), "core-packages", "build-tools")
+        exclude: name of packages to exclude (optional)
+        paths: paths to search
+    """
+    if not tags:
+        tags = DEFAULT_DETECTED_TAGS
+
+    logger.debug(f"Detecting packages:\n  paths: {paths}\n  names: {names}\n  tags: {tags}\n  exclude: {exclude}")
+    candidate_packages = spack.cmd.external.packages_to_search_for(names=names, tags=tags, exclude=exclude)
+    logger.debug(f"Candidate packages for detection: {candidate_packages}")
+    if not candidate_packages:
+        raise ValidationError("No candidate packages found for detection with the given criteria.")
+    return spack.detection.by_path(candidate_packages, path_hints=paths)
 
 
 class SpecLoader:
@@ -116,6 +140,7 @@ class SpecLoader:
             database_path: Path to the Spack database. If None, uses DEFAULT_DATABASE_PATH
         """
         self.config: Optional[models.SpecsConfiguration] = None
+        self.arch_config: Optional[models.ArchitectureConfig] = None
         self._specs_map: Dict[str, Spec] = {}
         self._database_path = database_path or self.DEFAULT_DATABASE_PATH
         
@@ -130,7 +155,7 @@ class SpecLoader:
     def _parse_configuration(self, data: dict) -> models.SpecsConfiguration:
         """Parse the validated configuration data into model objects."""
         # Parse default architecture
-        arch_config = models.ArchitectureConfig(**data["architecture"])
+        self.arch_config = models.ArchitectureConfig(**data["architecture"])
 
         # Parse specs
         specs = []
@@ -146,14 +171,13 @@ class SpecLoader:
 
             # Create spec config
             spec_config = models.SpecConfig(
-                architecture=arch_config,
+                architecture=self.arch_config,
                 dependencies=dependencies,
                 **spec_data
             )
             specs.append(spec_config)
 
         return models.SpecsConfiguration(specs=specs)
-        # return models.SpecsConfiguration(architecture=arch_config, specs=specs)
 
     def load_configuration(self, source: Union[dict, str, Path]) -> None:
         """
@@ -188,6 +212,102 @@ class SpecLoader:
         # Parse configuration
         self.config = self._parse_configuration(data)
 
+    def detect_add_packages(self, paths: List[Path]) -> None:
+        """
+        Detect packages at given paths and add them to the configuration.
+        """
+        if self.config is None:
+            raise ValidationError("No configuration loaded. Call load_from_file or load_from_dict first.")
+
+        detected_packages = detect_packages(paths=paths)
+        for spec_list in detected_packages.values():
+            for spec in spec_list:
+                logger.info(f"Detected package:  {spec}")
+                self.config.specs.append(
+                    models.SpecConfig(
+                        name=spec.name,
+                        version=str(spec.versions),
+                        architecture=self.arch_config,
+                        variants=str(spec.variants),
+                        external_path=spec.external_path,
+                        extra_attributes=spec.extra_attributes,
+                    )
+                )
+        # # add specs to packages.yaml
+        # new_specs = spack.detection.update_configuration(detected_packages)
+
+    def inject_runtime_libs(self, dynamic_linker: str) -> None:
+        """
+        Detect libc and add it to the config and as dependency to all specs using a compiler.
+        Add gcc-runtime or intel-oneapi-runtime as dependency to specs built with gcc or intel-oneapi-compilers.
+        """
+        if self.config is None:
+            raise ValidationError("No configuration loaded. Call load_from_file or load_from_dict first.")
+
+        # detect libc from dynamic linker
+        libc = libc_from_dynamic_linker(dynamic_linker)
+        if not libc:
+            raise ValidationError(f"Could not detect libc from dynamic linker: {dynamic_linker}")
+        logger.info(f"Detected libc spec:  {libc}")
+        # add libc to config
+        libc_config = models.SpecConfig(
+                name=libc.name,
+                version=str(libc.version),
+                external_path=libc.external_path or "",
+                architecture=self.arch_config,
+        )
+        self.config.specs.append(libc_config)
+
+        # add libc as a dependency to all specs built with a compiler, and to gcc-runtime
+        for specconf in self.config.specs:
+            if specconf.compiler or specconf.name == "gcc-runtime":
+                specconf.dependencies.append(
+                    models.DependencyConfig(
+                        name=libc_config.spec_map_key,
+                        depflags=["LINK"],
+                        virtuals=["libc"],
+                    )
+                )
+                logger.debug(f"Added libc dependency to spec: {specconf.spec_map_key}")
+
+        # add gcc-runtime to config if gcc is defined. It has the compiler and glibc as dependencies
+        for specconf in self.config.specs:
+            if specconf.name == "gcc":
+                self.config.specs.append(
+                    models.SpecConfig(
+                        name="gcc-runtime",
+                        version=specconf.version,
+                        external_path=specconf.external_path,
+                        external_modules=specconf.external_modules,
+                        architecture=self.arch_config,
+                        dependencies=[
+                            models.DependencyConfig(name=specconf.spec_map_key, depflags=["BUILD"]),  # compiler
+                            models.DependencyConfig(name=libc_config.spec_map_key, depflags=["LINK"], virtuals=["libc"])
+                        ],
+                    )
+                )
+                logger.debug(f"Added gcc-runtime for compiler spec: {specconf.spec_map_key}")
+            elif specconf.name in NOT_IMPLEMENTED_COMPILERS:
+                raise NotImplementedError(f"{specconf.name} runtime injection not implemented.")
+
+        # add gcc-runtime as dependency to all specs built with gcc
+        for specconf in self.config.specs:
+            if specconf.compiler:
+                match = re.match(r"^(?P<name>[\w\-]+)@(?P<version>[\w\.\-]+)$", specconf.compiler)
+                if match:
+                    compiler_version = match.group("version")
+                    if match.group("name") == "gcc":
+                        specconf.dependencies.append(
+                            models.DependencyConfig(
+                                name=f"gcc-runtime@{compiler_version}",
+                                depflags=["LINK"]
+                            )
+                        )
+                        logger.debug(f"Added gcc-runtime dependency to spec: {specconf.spec_map_key}")
+                    else:
+                        raise NotImplementedError(f"Compiler of spec: {specconf.spec_map_key} is not gcc.")
+                else:
+                    raise ValidationError(f"Invalid compiler format: {specconf.compiler}")
 
     def _add_dependencies(self, spec: Spec, spec_config: models.SpecConfig) -> None:
         """
@@ -222,7 +342,7 @@ class SpecLoader:
                 # direct=True,
             )
 
-    def build_specs(self) -> Dict[str, Spec]:
+    def build_specs(self, external_packages: Optional[List[str]] = DEFAULT_EXTERNAL_PACKAGES) -> Dict[str, Spec]:
         """
         Build all Spec objects from the configuration into self.specs_map.
 
@@ -236,14 +356,14 @@ class SpecLoader:
 
         # First pass: Create all spack Spec objects without dependencies
         for spec_config in self.config.specs:
-            spec_key = spec_map_key(spec_config)
+            spec_key = spec_config.spec_map_key
             if spec_key in self._specs_map:
                 raise ValidationError(f"Duplicate spec name found: {spec_key}")
-            self._specs_map[spec_key] = build_spack_spec(spec_config)
+            self._specs_map[spec_key] = build_spack_spec(spec_config, external_packages)
 
         # Second pass: Add dependencies
         for spec_config in self.config.specs:
-            spec = self._specs_map[spec_map_key(spec_config)]
+            spec = self._specs_map[spec_config.spec_map_key]
             self._add_dependencies(spec, spec_config)
 
         # Mark all specs as concrete
@@ -278,7 +398,7 @@ class SpecLoader:
 
         # Add all specs from the configuration
         # TODO: only add root specs - dependencies will be added automatically
-        specs_to_add_explicit = [(spec_map_key(spec_config), spec_config.explicit) for spec_config in self.config.specs]
+        specs_to_add_explicit = [(spec_config.spec_map_key, spec_config.explicit) for spec_config in self.config.specs]
 
         if dry_run:
             logger.info(f"Dry run: Would add {len(specs_to_add_explicit)} spec(s) to database:")
@@ -300,18 +420,19 @@ class SpecLoader:
         except Exception as e:
             raise DatabaseError(f"Failed to add specs to database: {e}")
 
-    def get_spec(self, name: str) -> Optional[Spec]:
+    def get_spec(self, key: str) -> Optional[Spec]:
         """
-        Get a built spec by name.
-        
+        Get a built spec by key.
+
         Args:
-            name: Name of the spec
+            key: Key of the spec
             
         Returns:
             Spec object or None if not found
         """
-        # FIXME : specs_map uses key with version
-        return self.specs_map.get(name)
+        # Expecting "{name}@{version}%{compiler}@{compiler_version}"
+        # REGEX: r"^(?P<name>[\w\-]+)(?:@(?P<version>[\w\.\-]+))?(?:%(?P<compiler>[\w\-]+)(?:@(?P<compiler_version>[\w\.\-]+))?)?$"
+        return self.specs_map.get(key)
 
     def iter_specs(self) -> Iterator[Spec]:
         """
@@ -334,7 +455,7 @@ class SpecLoader:
         compilers = []
         for spec_config in self.config.specs:
             if spec_config.extra_attributes and "compilers" in spec_config.extra_attributes:
-                spec = self.specs_map.get(spec_map_key(spec_config))
+                spec = self.specs_map.get(spec_config.spec_map_key)
                 if spec:
                     compilers.append(spec)
         return compilers
@@ -354,6 +475,7 @@ def add_packages_to_config(specs: Iterator[Spec], *, filter_names: Optional[List
             If not provided, the default scope is used.
     """
     ext_pkg_names = filter_names or []
+    logger.debug(f"Adding packages to config. Filter names: {ext_pkg_names}")
     
     # Group specs by name in dictionary
     by_name: Dict[str, List[Spec]] = {}

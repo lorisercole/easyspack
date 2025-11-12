@@ -7,6 +7,7 @@
 # - dependencies are automatically sorted by name by the loader
 # - Skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems
 # - default variants are automatically added by the loader if not specified. This seems the best approach with the current solver
+# - if a version does not exist in Spack, it is not a problem
 
 example_dict = {
     "architecture": {
@@ -170,6 +171,29 @@ example_dict = {
             ],
         },
         {
+            "name": "openssl",
+            "version": "3.2.1",  # EBVERSIONOPENSSL
+            "variants": "",
+            "external_path": "/home/lercole/ebspack/software/OpenSSL/3", # EBROOTOPENSSL
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+                # zlib is not a dependency in OpenSSL EB package
+            ],
+        },
+        {
             "name": "zlib",
             "version": "1.3.1",  # EBVERSIONZLIB
             "variants": "",
@@ -192,10 +216,132 @@ example_dict = {
             ],
         },
         {
+            "name": "openblas",
+            "version": "0.3.27",  # EBVERSIONOPENBLAS
+            "variants": "~ilp64 threads=openmp",  # not detectable by Spack
+            "explicit": True,
+            "external_path": "/home/lercole/ebspack/software/OpenBLAS/0.3.27-GCC-13.3.0", # EBROOTOPENBLAS
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx", "fortran"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        {
+            "name": "fftw",
+            "version": "3.3.10",  # EBVERSIONFFTW
+            "variants": "~mpi+openmp+shared precision=float,double,long_double,quad",  # not detectable by Spack  # precision: EB builds all of them if possible - to be checked (there are exceptions, like when using MPI or on ARM)
+            "explicit": True,
+            "external_path": "/home/lercole/ebspack/software/FFTW/3.3.10-GCC-13.3.0", # EBROOTFFTW
+            # "external_modules": ["/home/lercole/ebspack/modules/all/FFTW/3.3.10-GCC-13.3.0.lua"],
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "fortran"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        # {
+        #     "name": "fftw",
+        #     "version": "3.3.10",  # EBVERSIONFFTWMPI
+        #     "variants": "+mpi~openmp+shared precision=float,double,long_double",  # not detectable by Spack  # precision: EB builds all of them if possible - to be checked (there are exceptions, like when using MPI or on ARM)
+        #     "explicit": True,
+        #     "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/FFTW.MPI/3.3.10-gompi-2023b", # EBROOTFFTWMPI
+        #     # "external_modules": ["/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/modules/all/FFTW.MPI/3.3.10-gompi-2023b.lua"],
+        #     "dependencies": [
+        #         {
+        #             "name": "gcc@13.2.0",
+        #             "depflags": ["BUILD"],
+        #             "virtuals": ["c", "fortran"],
+        #         },
+        #         {
+        #             "name": "gcc-runtime@13.2.0",
+        #             "depflags": ["LINK"],
+        #         },
+        #         {
+        #             "name": "glibc@2.39",
+        #             "depflags": ["LINK"],
+        #             "virtuals": ["libc"],
+        #         },
+        #         ...
+        #     ],
+        # },
+        {
+            "name": "binutils",
+            "version": "2.42",  # EBVERSIONBINUTILS
+            "variants": "~gold+headers",  # detectable by Spack
+            "external_path": "/home/lercole/ebspack/software/binutils/2.42-GCCcore-13.3.0", # EBROOTBINUTILS
+            # "external_modules": ["/home/lercole/ebspack/modules/all/make/4.4.1-GCCcore-13.3.0.lua"],
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+                {
+                    "name": "zlib@1.3.1",
+                    "depflags": ["BUILD", "LINK"],
+                },
+                # spack dependencies: zstd (blr), [elfutils, gettext] (bl)
+            ],
+        },
+        {
             "name": "libarchive",
             "version": "3.7.4",  # EBVERSIONLIBARCHIVE
             "variants": "",
             "external_path": "/home/lercole/ebspack/software/libarchive/3.7.4-GCCcore-13.3.0", # EBROOTLIBARCHIVE
+            "dependencies": [
+                {
+                    "name": "gcc@13.3.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "gcc-runtime@13.3.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.39",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
+        },
+        {
+            "name": "ncurses",
+            "version": "6.5",  # EBVERSIONNCURSES
+            "variants": "abi=6",  # detectable by Spack
+            "external_path": "/home/lercole/ebspack/software/ncurses/6.5-GCCcore-13.3.0", # EBROOTNCURSES
             "dependencies": [
                 {
                     "name": "gcc@13.3.0",
@@ -222,7 +368,7 @@ example_dict = {
                 {
                     "name": "gcc@13.3.0",
                     "depflags": ["BUILD"],
-                    "virtuals": ["c", "cxx"],
+                    "virtuals": ["c"],
                 },
                 {
                     "name": "gcc-runtime@13.3.0",
@@ -279,11 +425,19 @@ example_dict = {
                     "depflags": ["BUILD", "LINK"],
                 },
                 {
-                    "name": "bzip2@1.0.8",   # in Spack it depends on the virtual zlib-api (zlib or zlib-ng)
+                    "name": "bzip2@1.0.8",
                     "depflags": ["LINK"],
                 },
             ],
         },
 
+        # ADDITIONAL EXTERNAL PACKAGES
+        {
+            "name": "rsync",
+            "version": "3.2.7",
+            "variants": "",
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/",  # EESSI COMPAT LAYER
+            "dependencies": [],
+        },
     ]
 }

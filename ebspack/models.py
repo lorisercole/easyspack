@@ -35,8 +35,8 @@ class SpecConfig:
     variants: Optional[str] = None
     explicit: Optional[bool] = False
     external_path: str = None
-    external_modules: List[str] = field(default_factory=list)
-    extra_attributes: Optional[Dict] = None
+    external_modules: Optional[List[str]] = field(default_factory=list)
+    extra_attributes: Optional[Dict] = field(default_factory=dict)
     dependencies: List[DependencyConfig] = field(default_factory=list)
 
     def get_spec_string(self) -> str:
@@ -45,7 +45,25 @@ class SpecConfig:
         if self.variants:
             spec_str += f" {self.variants}"
         return spec_str
-    
+
+    @property
+    def compiler(self) -> Optional[str]:
+        """Get the compiler name if defined in the dependencies. A compiler is identified
+        as a dependency with BUILD depflag and virtuals including 'c', 'cxx', or 'fortran'.
+        """
+        for dep in self.dependencies:
+            if "BUILD" in dep.depflags and any(v in dep.virtuals for v in ["c", "cxx", "fortran"]):
+                return dep.name
+        return None
+
+    @property
+    def spec_map_key(self) -> str:
+        """A (supposedly) unique key for the spec map based on name and version."""
+        key = f"{self.name}@{self.version}"
+        if self.compiler:
+            key += f"%{self.compiler}"
+        return key
+
     # def get_spack_spec(self) -> Spec:
     #     """Generate a Spack Spec object."""
     #     spec_str = self.get_spec_string()
