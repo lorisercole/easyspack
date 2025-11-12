@@ -22,10 +22,13 @@ from ebspack import SpecLoader, add_packages_to_config
 from examples.eessi_example import example_dict
 
 # SPACK_DATABASE = "/home/lercole/ebspack/spack/upstreams/test-1"
-SPACK_DATABASE = "/home/lercole/eessi/spack/upstreams/eessi"
 # DYNAMIC_LINKER = "/lib64/ld-linux-x86-64.so.2"
+SPACK_DATABASE = "/home/lercole/eessi/spack/upstreams/eessi"
 DYNAMIC_LINKER = os.path.join(os.getenv("EESSI_EPREFIX"), "lib64/ld-linux-x86-64.so.2")
-OS_PKGS_PATHS = [os.getenv("EESSI_EPREFIX"), os.path.join(os.getenv("EESSI_EPREFIX"), "usr")]
+OS_PKGS_PATHS = [
+    os.getenv("EESSI_EPREFIX"),
+    os.path.join(os.getenv("EESSI_EPREFIX"), "usr")
+]
 EXTERNAL_PACKAGES = (
     "gcc",
     "glibc",
