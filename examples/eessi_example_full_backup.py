@@ -22,6 +22,14 @@ example_dict = {
     },
     "specs": [
         # COMPAT LAYER EXTERNAL PACKAGES ARE DETECTED AUTOMATICALLY BY SPACK
+        {
+            "name": "glibc",
+            "version": "2.37",  # EBVERSIONMAKE
+            "variants": "",
+            "explicit": True,
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64",
+            "dependencies": [],
+        },
 
         # SOFTWARE PACKAGES
         {  # EB GCC COMPILER
@@ -38,7 +46,24 @@ example_dict = {
                     "fortran": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gfortran",
                 }
             },
-            "dependencies": []
+            "dependencies": [],
+        },
+        {
+            "name": "gcc-runtime",
+            "version": "13.2.0",  # EBVERSIONGCC
+            "variants": "",
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0", # EBROOTGCCCORE or EBROOTGCC
+            "dependencies": [
+                {
+                    "name": "gcc@13.2.0",
+                    "depflags": ["BUILD"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
+            ],
         },
         {
             "name": "gmake",
@@ -53,15 +78,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
             ],
         },
         # {
@@ -81,7 +106,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.36",
+        #             "name": "glibc@2.37",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -112,7 +137,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.36",
+        #             "name": "glibc@2.37",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -131,15 +156,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx", "fortran"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
             ],
         },
         {
@@ -155,15 +180,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "fortran"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
             ],
         },
         # {
@@ -184,7 +209,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.36",
+        #             "name": "glibc@2.37",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -202,15 +227,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
                 {
                     "name": "zlib@1.2.13",
                     "depflags": ["LINK"],
@@ -233,15 +258,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
             ],
         },
         # {
@@ -260,7 +285,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.36",
+        #             "name": "glibc@2.37",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -282,7 +307,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.36",
+        #             "name": "glibc@2.37",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -300,15 +325,15 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
                 },
-                # {
-                #     "name": "gcc-runtime@13.2.0",
-                #     "depflags": ["LINK"],
-                # },
-                # {
-                #     "name": "glibc@2.36",
-                #     "depflags": ["LINK"],
-                #     "virtuals": ["libc"],
-                # },
+                {
+                    "name": "gcc-runtime@13.2.0",
+                    "depflags": ["LINK"],
+                },
+                {
+                    "name": "glibc@2.37",
+                    "depflags": ["LINK"],
+                    "virtuals": ["libc"],
+                },
                 # {
                 #     "name": "gmake@4.4.1",    # not for EasyBuild !
                 #     "depflags": ["BUILD", "RUN"],
@@ -325,7 +350,7 @@ example_dict = {
                     "name": "zlib@1.2.13",   # in Spack it depends on the virtual zlib-api (zlib or zlib-ng)
                     "depflags": ["BUILD", "LINK"],
                 },
-                # libarchive, bzip2, openssl 3 --> not dependencies in cmake Spack package
+                # libarchive, bzip2, openssl --> not dependencies in cmake Spack package
                 {
                     "name": "libarchive@3.7.2%gcc@13.2.0",  # in Spack it is not needed if +ownlib
                     "depflags": ["BUILD", "LINK"],

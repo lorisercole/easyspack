@@ -1,110 +1,120 @@
 packages:
-  cmake:
+  glibc:
     externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
-        - cxx
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: curl@8.3.0%gcc@13.2.0
-        virtuals: []
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: ncurses@6.4.20230401
-        virtuals: []
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: zlib@1.2.13
-        virtuals: []
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: libarchive@3.7.2%gcc@13.2.0
-        virtuals: []
-      - deptypes:
-        - LINK
-        spec: bzip2@1.0.8
-        virtuals: []
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: openssl@1.1.1w
-        virtuals: []
-      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0
-      spec: cmake@3.31.8
-  curl:
-    externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
-        - cxx
-      - deptypes:
-        - LINK
-        spec: zlib@1.2.13
-        virtuals: []
-      - deptypes:
-        - BUILD
-        - LINK
-        spec: openssl@1.1.1w
-        virtuals: []
-      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/cURL/8.3.0-GCCcore-13.2.0
-      spec: curl@8.3.0+nghttp2
-  fftw:
-    externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
-        - fortran
-      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/FFTW/3.3.10-GCC-13.2.0
-      spec: fftw@3.3.10~mpi+openmp+shared precision=float,double,long_double,quad
+    - spec: glibc@2.37
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64
+      dependencies: []
   gcc:
     externals:
-    - dependencies: []
+    - spec: gcc@13.2.0
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0
-      spec: gcc@13.2.0
+      dependencies: []
+      extra_attributes:
+        compilers:
+          c: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gcc
+          cxx: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/g++
+          fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gfortran
+  gcc-runtime:
+    externals:
+    - spec: gcc-runtime@13.2.0
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
   gmake:
     externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
+    - spec: gmake@4.4.1
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/make/4.4.1-GCCcore-13.2.0
-      spec: gmake@4.4.1
-  libarchive:
-    externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
-        - cxx
-      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libarchive/3.7.2-GCCcore-13.2.0
-      spec: libarchive@3.7.2
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
   openblas:
     externals:
-    - dependencies:
-      - deptypes:
-        - BUILD
-        spec: gcc@13.2.0
-        virtuals:
-        - c
-        - cxx
-        - fortran
+    - spec: openblas@0.3.24~ilp64 threads=openmp
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenBLAS/0.3.24-GCC-13.2.0
-      spec: openblas@0.3.24~ilp64 threads=openmp
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
+  fftw:
+    externals:
+    - spec: fftw@3.3.10~mpi+openmp+shared precision=float,double,long_double,quad
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/FFTW/3.3.10-GCC-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
+  curl:
+    externals:
+    - spec: curl@8.3.0+nghttp2
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/cURL/8.3.0-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
+      - spec: zlib@1.2.13
+        deptypes:
+        - link
+      - spec: openssl@1.1.1w
+        deptypes:
+        - build
+        - link
+  libarchive:
+    externals:
+    - spec: libarchive@3.7.2
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libarchive/3.7.2-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
+  cmake:
+    externals:
+    - spec: cmake@3.31.8
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0
+        deptypes:
+        - build
+      - spec: gcc-runtime@13.2.0
+        deptypes:
+        - link
+      - spec: curl@8.3.0
+        deptypes:
+        - build
+        - link
+      - spec: ncurses@6.4.20230401
+        deptypes:
+        - build
+        - link
+      - spec: zlib@1.2.13
+        deptypes:
+        - build
+        - link
+      - spec: libarchive@3.7.2
+        deptypes:
+        - build
+        - link
+      - spec: bzip2@1.0.8
+        deptypes:
+        - link
+      - spec: openssl@1.1.1w
+        deptypes:
+        - build
+        - link
