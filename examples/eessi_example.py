@@ -16,11 +16,7 @@
 # - how to include glibc headers? (stdlib.h, math.h, etc)
 
 example_dict = {
-    "architecture": {
-        "platform": "linux",
-        "os": "ubuntu24.04",
-        "target": "skylake"  # the one detected by Spack (may differ from EESSI target)
-    },
+    "software_target": "haswell",  # EESSI software architecture
     "specs": [
         # COMPAT LAYER EXTERNAL PACKAGES ARE DETECTED AUTOMATICALLY BY SPACK
 
@@ -28,7 +24,7 @@ example_dict = {
         {  # EB GCC COMPILER
             "name": "gcc",
             "version": "13.2.0",  # EBVERSIONGCC
-            "variants": "",
+            "variants": "languages:='c,c++,fortran'",
             "explicit": True,
             "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0", # EBROOTGCCCORE or EBROOTGCC
             # "external_modules": ["/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/modules/all/GCC/13.2.0.lua"],

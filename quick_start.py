@@ -32,14 +32,6 @@ OS_PKGS_PATHS = [
 EXTERNAL_PACKAGES = (
     "gcc",
     "glibc",
-    # "binutils",
-    # "bzip2",
-    # "git",
-    # "m4",
-    # "ncurses",
-    # "openssl",
-    # "rsync",
-    # "zlib",
 )
 ###############################################################################
 # boostrap spack

@@ -28,6 +28,12 @@ DEFAULT_DETECTED_TAGS = ["detectable"]
 NOT_IMPLEMENTED_COMPILERS = ("acfl", "aocc", "apple-clang", "cce", "fj", "intel-oneapi-compilers",
                              "intel-oneapi-compilers-classic", "llvm", "msvc", "nvhpc", "xl")
 
+HOST_PLATFORM = spack.platforms.host()
+HOST_OS = HOST_PLATFORM.default_operating_system()
+HOST_TARGET = HOST_PLATFORM.default_target()
+HOST_TARGET_FAMILY = HOST_TARGET.family
+
+
 def populate_variants_with_defaults(spec: Spec) -> None:
     """Populate spec with all variants from package definition using defaults.
     
@@ -141,9 +147,17 @@ class SpecLoader:
         """
         self.config: Optional[models.SpecsConfiguration] = None
         self.arch_config: Optional[models.ArchitectureConfig] = None
+        self.generic_arch_config: Optional[models.ArchitectureConfig] = None
         self._specs_map: Dict[str, Spec] = {}
         self._database_path = database_path or self.DEFAULT_DATABASE_PATH
-        
+
+        self.host_arch_config = models.ArchitectureConfig(
+            platform=str(HOST_PLATFORM),
+            os=str(HOST_OS),
+            target=str(HOST_TARGET),
+        )
+        logger.info(f"HOST architecture: {self.host_arch_config}")
+
         # Initialize database with the configured path
         self._database = Database(self._database_path)
 
@@ -155,7 +169,25 @@ class SpecLoader:
     def _parse_configuration(self, data: dict) -> models.SpecsConfiguration:
         """Parse the validated configuration data into model objects."""
         # Parse default architecture
-        self.arch_config = models.ArchitectureConfig(**data["architecture"])
+        target = spack.vendor.archspec.cpu.TARGETS.get(data["software_target"])
+        if not target:
+            raise ValidationError(f"Invalid software_target: {data['software_target']}")
+        if not ((target == HOST_TARGET) or (target in HOST_TARGET.ancestors)):
+            raise ValidationError(
+                f"software_target '{data['software_target']}' is not compatible with host target '{HOST_TARGET.name}'"
+            )
+        self.arch_config = models.ArchitectureConfig(
+            platform=str(HOST_PLATFORM),
+            os=str(HOST_OS),
+            target=data["software_target"],
+        )
+        logger.info(f"EESSI software architecture: {self.arch_config}")
+        self.generic_arch_config = models.ArchitectureConfig(
+            platform=str(HOST_PLATFORM),
+            os=str(HOST_OS),
+            target=str(HOST_TARGET_FAMILY),
+        )
+        logger.info(f"EESSI generic architecture: {self.generic_arch_config}")
 
         # Parse specs
         specs = []
@@ -227,14 +259,12 @@ class SpecLoader:
                     models.SpecConfig(
                         name=spec.name,
                         version=str(spec.versions),
-                        architecture=self.arch_config,
+                        architecture=self.generic_arch_config,
                         variants=str(spec.variants),
                         external_path=spec.external_path,
                         extra_attributes=spec.extra_attributes,
                     )
                 )
-        # # add specs to packages.yaml
-        # new_specs = spack.detection.update_configuration(detected_packages)
 
     def inject_runtime_libs(self, dynamic_linker: str) -> None:
         """
@@ -254,7 +284,7 @@ class SpecLoader:
                 name=libc.name,
                 version=str(libc.version),
                 external_path=libc.external_path or "",
-                architecture=self.arch_config,
+                architecture=self.generic_arch_config,
         )
         self.config.specs.append(libc_config)
 
@@ -271,6 +301,7 @@ class SpecLoader:
                 logger.debug(f"Added libc dependency to spec: {specconf.spec_map_key}")
 
         # add gcc-runtime to config if gcc is defined. It has the compiler and glibc as dependencies
+        # it uses the architecture of the host
         for specconf in self.config.specs:
             if specconf.name == "gcc":
                 self.config.specs.append(
@@ -279,7 +310,7 @@ class SpecLoader:
                         version=specconf.version,
                         external_path=specconf.external_path,
                         external_modules=specconf.external_modules,
-                        architecture=self.arch_config,
+                        architecture=self.host_arch_config,
                         dependencies=[
                             models.DependencyConfig(name=specconf.spec_map_key, depflags=["BUILD"]),  # compiler
                             models.DependencyConfig(name=libc_config.spec_map_key, depflags=["LINK"], virtuals=["libc"])

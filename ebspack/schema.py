@@ -7,26 +7,11 @@ SPEC_SCHEMA = {
     "title": "Spack Spec Configuration",
     "description": "Schema for defining Spack specs and their dependencies to be added to a database",
     "type": "object",
-    "required": ["architecture", "specs"],
+    "required": ["software_target", "specs"],
     "properties": {
-        "architecture": {
-            "type": "object",
+        "software_target": {
+            "type": "string",
             "description": "Default architecture specification for all specs",
-            "required": ["platform", "os", "target"],
-            "properties": {
-                "platform": {
-                    "type": "string",
-                    "description": "Platform name (e.g., 'linux', 'darwin', 'windows')"
-                },
-                "os": {
-                    "type": "string",
-                    "description": "Operating system name (e.g., 'ubuntu24.04', 'centos7')"
-                },
-                "target": {
-                    "type": "string",
-                    "description": "Target architecture (e.g., 'skylake', 'x86_64', 'aarch64')"
-                }
-            }
         },
         "specs": {
             "type": "array",
@@ -40,7 +25,7 @@ SPEC_SCHEMA = {
     "definitions": {
         "spec": {
             "type": "object",
-            "required": ["name", "version"],
+            "required": ["name", "version", "external_path"],
             "properties": {
                 "name": {
                     "type": "string",
@@ -54,6 +39,11 @@ SPEC_SCHEMA = {
                     "type": "string",
                     "description": "Spack variants specification (e.g., 'fabrics=ucx,psm')"
                 },
+                "explicit": {
+                    "type": "boolean",
+                    "description": "Whether to mark the spec as explicit in Spack",
+                    "default": False
+                },
                 "external_path": {
                     "type": "string",
                     "description": "Path to external package installation"
@@ -65,15 +55,10 @@ SPEC_SCHEMA = {
                         "type": "string"
                     }
                 },
-                "architecture": {
+                "extra_attributes": {
                     "type": "object",
-                    "description": "Override default architecture for this spec",
-                    "required": ["platform", "os", "target"],
-                    "properties": {
-                        "platform": {"type": "string"},
-                        "os": {"type": "string"},
-                        "target": {"type": "string"}
-                    }
+                    "description": "Additional attributes to set on the Spack spec",
+                    "additionalProperties": True
                 },
                 "dependencies": {
                     "type": "array",
