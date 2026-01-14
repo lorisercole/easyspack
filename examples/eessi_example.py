@@ -14,6 +14,8 @@
 #   EESSI filtered dependencies:
 #     Autoconf,Automake,Autotools,binutils,bzip2,DBus,flex,gettext,gperf,help2man,intltool,libreadline,libtool,M4,makeinfo,ncurses,util-linux,XZ,zlib
 # - how to include glibc headers? (stdlib.h, math.h, etc)
+# - pure build dependencies are not included in Spack solve
+# - only packages that can be link/runtime dependencies of other packages actually need their dependencies declared
 
 example_dict = {
     "software_target": "haswell",  # EESSI software architecture

@@ -4,7 +4,8 @@ the new versions of Spack the supports external packages with dependencies.
 """
 
 import yaml
-from examples.eessi_example_full_backup import example_dict
+# from examples.eessi_example_full_backup import example_dict
+from examples.eessi_example import example_dict
 
 
 d = {'packages': {}}
@@ -40,5 +41,5 @@ for spec in example_dict['specs']:
         if dep.get('virtuals', None) and not dep['name'].startswith('gcc@'):
             d['packages'][spec['name']]['externals'][0]['dependencies'][-1]['virtuals'] = dep['virtuals']
 
-with open('examples/eessi_example.yml', 'w') as f:
+with open('examples/eessi_example.yaml', 'w') as f:
     yaml.safe_dump(d, f, sort_keys=False, default_flow_style=False)
