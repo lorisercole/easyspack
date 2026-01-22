@@ -1,11 +1,10 @@
 """
-This script converts the example_dict from eessi_example_full_backup.py into a package.yaml file that can be used by
-the new versions of Spack the supports external packages with dependencies.
+This script converts the example_dict from eessi_example_full_backup.py into a package.yaml file
 """
 
 import yaml
-# from examples.eessi_example_full_backup import example_dict
-from examples.eessi_example import example_dict
+# from eessi_example_full_backup import example_dict
+from eessi_example import example_dict
 
 
 d = {'packages': {}}

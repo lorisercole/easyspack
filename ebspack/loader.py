@@ -6,7 +6,7 @@ import logging
 import json
 import jsonschema
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Union
 
 import spack.cmd.external
 import spack.deptypes as dt
@@ -124,6 +124,46 @@ def detect_packages(
     if not candidate_packages:
         raise ValidationError("No candidate packages found for detection with the given criteria.")
     return spack.detection.by_path(candidate_packages, path_hints=paths)
+
+def resolved_dependencies_for_spec(spec: "spack.spec.Spec") -> List[Dict[str, Any]]:
+    """Return the package-level dependencies that actually apply to spec.
+
+    This resolves all `when` conditions on the package's dependency metadata,
+    merging entries that apply and returning a list of Dependency-like dicts.
+    NOTE: variants should be populated/concrete.
+    """
+    import spack.deptypes as dt
+    pkg_cls = spack.repo.PATH.get_pkg_class(spec.name)
+    pkg = pkg_cls(spec)
+
+    merged: Dict[str, spack.dependency.Dependency] = {}
+
+    for when, deps_by_name in pkg.dependencies.items():
+        if spec.satisfies(when):
+            for name, dep in deps_by_name.items():
+                if name in merged:
+                    merged[name].merge(dep)
+                else:
+                    # make a shallow copy so we can mutate/merge safely
+                    new_dep = spack.dependency.Dependency(dep.pkg, dep.spec.copy(), dep.depflag)
+                    # copy patches dict (shallow copy is fine here)
+                    new_dep.patches = {k: list(v) for k, v in dep.patches.items()}
+                    merged[name] = new_dep
+
+    out: List[Dict[str, Any]] = []
+    for dep in merged.values():
+        out.append(
+            {
+                "name": dep.name,
+                "spec": dep.spec.format(),                     # constraint/spec expression
+                "depflag": dep.depflag,     # e.g. 'BLR'
+                "deptypes_list": [dt.flag_to_string(f) for f in dt.ALL_FLAGS if dep.depflag & f],
+                "patches": dep.patches,
+                "dep": dep,
+            }
+        )
+
+    return out
 
 
 class SpecLoader:

@@ -1,3 +1,4 @@
+# Example of packages.yaml file for EESSI software stack with compat-layer packages
 packages:
   gcc:
     externals:
@@ -14,29 +15,29 @@ packages:
     - spec: gmake@4.4.1 target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/make/4.4.1-GCCcore-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
+      - spec: gcc@13.2.0 target=haswell
   openblas:
     externals:
     - spec: openblas@0.3.24~ilp64 threads=openmp target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenBLAS/0.3.24-GCC-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
+      - spec: gcc@13.2.0 target=haswell
   fftw:
     externals:
     - spec: fftw@3.3.10~mpi+openmp+shared precision=float,double,long_double,quad target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/FFTW/3.3.10-GCC-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
+      - spec: gcc@13.2.0 target=haswell
   curl:
     externals:
     - spec: curl@8.3.0+nghttp2 target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/cURL/8.3.0-GCCcore-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
-      - spec: zlib@1.2.13
+      - spec: gcc@13.2.0 target=haswell
+      - spec: zlib@1.2.13  # compat
         deptypes:
         - link
-      - spec: openssl@1.1.1w
+      - spec: openssl@1.1.1w  # compat
         deptypes:
         - build
         - link
@@ -45,33 +46,33 @@ packages:
     - spec: libarchive@3.7.2 target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libarchive/3.7.2-GCCcore-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
+      - spec: gcc@13.2.0 target=haswell
   cmake:
     externals:
     - spec: cmake@3.31.8 target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0
       dependencies:
-      - spec: gcc@13.2.0
-      - spec: curl@8.3.0
+      - spec: gcc@13.2.0 target=haswell
+      - spec: curl@8.3.0 target=haswell
         deptypes:
         - build
         - link
-      - spec: ncurses@6.4.20230401
+      - spec: ncurses@6.4.20230401  # compat
         deptypes:
         - build
         - link
-      - spec: zlib@1.2.13
+      - spec: zlib@1.2.13  # compat
         deptypes:
         - build
         - link
-      - spec: libarchive@3.7.2
+      - spec: libarchive@3.7.2 target=haswell
         deptypes:
         - build
         - link
-      - spec: bzip2@1.0.8
+      - spec: bzip2@1.0.8  # compat
         deptypes:
         - link
-      - spec: openssl@1.1.1w
+      - spec: openssl@1.1.1w  # compat
         deptypes:
         - build
         - link

@@ -1,41 +1,17 @@
 
-# Define the configuration as a dictionary (same as original add_pkg.py)
-# NOTES:
-# - compilers (gcc) should not have dependencies, but have extra_attributes with compiler paths
-# - all packages should have runtime and link dependencies declared
-# - the only build dependency needed is the compiler with c/cxx/fortran virtuals, this is shows which compiler was used to build
-# - dependencies are automatically sorted by name by the loader
-# - Skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems
-# - default variants are automatically added by the loader if not specified. This seems the best approach with the current solver
-# - if a version does not exist in Spack, it is not a problem
-# - we'll need to be careful with EESSI compat layer, and packages that have been filtered out (e.g. glibc, binutils, etc)
-# - EESSI filtered dependencies:
-#   Autoconf,Automake,Autotools,binutils,bzip2,DBus,flex,gettext,gperf,help2man,intltool,libreadline,libtool,M4,makeinfo,ncurses,util-linux,XZ,zlib
-# - glibc is detected by Spack and dependencies are automatically added
-# - gcc-runtime is added by Spack
+# Define the configuration as a dictionary
+# gcc-runtime and glibc dependencies are added by ebspack automatically
 
 example_dict = {
-    "architecture": {
-        "platform": "linux",
-        "os": "ubuntu24.04",
-        "target": "skylake"  # the one detected by Spack (may differ from EESSI target)
-    },
+    "software_target": "haswell",  # EESSI software architecture
     "specs": [
         # COMPAT LAYER EXTERNAL PACKAGES ARE DETECTED AUTOMATICALLY BY SPACK
-        {
-            "name": "glibc",
-            "version": "2.37",  # EBVERSIONMAKE
-            "variants": "",
-            "explicit": True,
-            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64",
-            "dependencies": [],
-        },
 
         # SOFTWARE PACKAGES
         {  # EB GCC COMPILER
             "name": "gcc",
             "version": "13.2.0",  # EBVERSIONGCC
-            "variants": "",
+            "variants": "languages:='c,c++,fortran'",
             "explicit": True,
             "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0", # EBROOTGCCCORE or EBROOTGCC
             # "external_modules": ["/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/modules/all/GCC/13.2.0.lua"],
@@ -46,24 +22,7 @@ example_dict = {
                     "fortran": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gfortran",
                 }
             },
-            "dependencies": [],
-        },
-        {
-            "name": "gcc-runtime",
-            "version": "13.2.0",  # EBVERSIONGCC
-            "variants": "",
-            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0", # EBROOTGCCCORE or EBROOTGCC
-            "dependencies": [
-                {
-                    "name": "gcc@13.2.0",
-                    "depflags": ["BUILD"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
-                },
-            ],
+            "dependencies": []
         },
         {
             "name": "gmake",
@@ -78,14 +37,87 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c"],
                 },
+            ],
+        },
+        {
+            "name": "numactl",
+            "version": "2.0.16",  # EBVERSIONNUMACTL
+            "variants": "",
+            "explicit": True,
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/numactl/2.0.16-GCCcore-13.2.0",
+            "dependencies": [
                 {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
+                    "name": "gcc@13.2.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c"],
+                },
+            ],
+        },
+        {
+            "name": "libxml2",
+            "version": "2.11.5",  # EBVERSIONLIBXML2
+            "variants": "",
+            "explicit": True,
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libxml2/2.11.5-GCCcore-13.2.0",
+            "dependencies": [
+                {
+                    "name": "gcc@13.2.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
                 },
                 {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
+                    "name": "zlib@1.2.13",
+                    "depflags": ["BUILD", "LINK"],
+                },
+                {
+                    # "name": "xz@5.4.4",
+                    "name": "xz@5.4.3",  # version available in compat layer
+                    "depflags": ["BUILD", "LINK"],
+                },
+                # libiconv: not for EasyBuild
+            ],
+        },
+        {
+            "name": "libpciaccess",
+            "version": "0.17",  # EBVERSIONLIBPCIACCESS
+            "variants": "",
+            "explicit": True,
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libpciaccess/0.17-GCCcore-13.2.0",
+            "dependencies": [
+                {
+                    "name": "gcc@13.2.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c"],
+                },
+            ],
+        },
+        {
+            "name": "hwloc",
+            "version": "2.9.2",  # EBVERSIONHWLOC
+            "variants": "",
+            "explicit": True,
+            "external_path": "/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0", # EBROOTHWLOC
+            "dependencies": [
+                {
+                    "name": "gcc@13.2.0",
+                    "depflags": ["BUILD"],
+                    "virtuals": ["c", "cxx"],
+                },
+                {
+                    "name": "libxml2@2.11.5%gcc@13.2.0",
+                    "depflags": ["BUILD", "LINK"],
+                },
+                {
+                    "name": "libpciaccess@0.17%gcc@13.2.0",
+                    "depflags": ["BUILD", "LINK"],
+                },
+                {
+                    "name": "ncurses@6.4.20230401",  # filtered dependency in EESSI
+                    "depflags": ["BUILD", "LINK"],
+                },
+                {
+                    "name": "numactl@2.0.16%gcc@13.2.0",  # not for Spack
+                    "depflags": ["BUILD", "LINK"],
                 },
             ],
         },
@@ -106,7 +138,7 @@ example_dict = {
         #             "depflags": ["LINK"],
         #         },
         #         {
-        #             "name": "glibc@2.37",
+        #             "name": "glibc@2.36",
         #             "depflags": ["LINK"],
         #             "virtuals": ["libc"],
         #         },
@@ -121,28 +153,6 @@ example_dict = {
         #         # missing: gettext, Perl, expat
         #     ],
         # },
-        # {
-        #     "name": "zlib",  # filtered dependency in EESSI
-        #     "version": "1.3.1",  # EBVERSIONZLIB
-        #     "variants": "",
-        #     "external_path": "/home/lercole/ebspack/software/zlib/1.3.1-GCCcore-13.2.0", # EBROOTZLIB
-        #     "dependencies": [
-        #         {
-        #             "name": "gcc@13.2.0",
-        #             "depflags": ["BUILD"],
-        #             "virtuals": ["c", "cxx"],
-        #         },
-        #         {
-        #             "name": "gcc-runtime@13.2.0",
-        #             "depflags": ["LINK"],
-        #         },
-        #         {
-        #             "name": "glibc@2.37",
-        #             "depflags": ["LINK"],
-        #             "virtuals": ["libc"],
-        #         },
-        #     ],
-        # },
         {
             "name": "openblas",
             "version": "0.3.24",  # EBVERSIONOPENBLAS
@@ -155,15 +165,6 @@ example_dict = {
                     "name": "gcc@13.2.0",
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx", "fortran"],
-                },
-                {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
                 },
             ],
         },
@@ -180,15 +181,6 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "fortran"],
                 },
-                {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
-                },
             ],
         },
         # {
@@ -204,15 +196,6 @@ example_dict = {
         #             "depflags": ["BUILD"],
         #             "virtuals": ["c", "fortran"],
         #         },
-        #         {
-        #             "name": "gcc-runtime@13.2.0",
-        #             "depflags": ["LINK"],
-        #         },
-        #         {
-        #             "name": "glibc@2.37",
-        #             "depflags": ["LINK"],
-        #             "virtuals": ["libc"],
-        #         },
         #         ...
         #     ],
         # },
@@ -226,15 +209,6 @@ example_dict = {
                     "name": "gcc@13.2.0",
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
-                },
-                {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
                 },
                 {
                     "name": "zlib@1.2.13",
@@ -258,61 +232,8 @@ example_dict = {
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
                 },
-                {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
-                },
             ],
         },
-        # {
-        #     "name": "ncurses",  # filered dependency in EESSI
-        #     "version": "6.5",  # EBVERSIONNCURSES
-        #     "variants": "abi=6",  # detectable by Spack
-        #     "external_path": "/home/lercole/ebspack/software/ncurses/6.5-GCCcore-13.2.0", # EBROOTNCURSES
-        #     "dependencies": [
-        #         {
-        #             "name": "gcc@13.2.0",
-        #             "depflags": ["BUILD"],
-        #             "virtuals": ["c", "cxx"],
-        #         },
-        #         {
-        #             "name": "gcc-runtime@13.2.0",
-        #             "depflags": ["LINK"],
-        #         },
-        #         {
-        #             "name": "glibc@2.37",
-        #             "depflags": ["LINK"],
-        #             "virtuals": ["libc"],
-        #         },
-        #     ],
-        # },
-        # {  # filtered dependency in EESSI
-        #     "name": "bzip2",
-        #     "version": "1.0.8",  # EBVERSIONBZIP2
-        #     "variants": "",
-        #     "external_path": "/home/lercole/ebspack/software/bzip2/1.0.8-GCCcore-13.2.0", # EBROOTBZIP2
-        #     "dependencies": [
-        #         {
-        #             "name": "gcc@13.2.0",
-        #             "depflags": ["BUILD"],
-        #             "virtuals": ["c"],
-        #         },
-        #         {
-        #             "name": "gcc-runtime@13.2.0",
-        #             "depflags": ["LINK"],
-        #         },
-        #         {
-        #             "name": "glibc@2.37",
-        #             "depflags": ["LINK"],
-        #             "virtuals": ["libc"],
-        #         },
-        #     ],
-        # },
         {
             "name": "cmake",
             "version": "3.31.8",  # EBVERSIONCMAKE
@@ -324,15 +245,6 @@ example_dict = {
                     "name": "gcc@13.2.0",
                     "depflags": ["BUILD"],
                     "virtuals": ["c", "cxx"],
-                },
-                {
-                    "name": "gcc-runtime@13.2.0",
-                    "depflags": ["LINK"],
-                },
-                {
-                    "name": "glibc@2.37",
-                    "depflags": ["LINK"],
-                    "virtuals": ["libc"],
                 },
                 # {
                 #     "name": "gmake@4.4.1",    # not for EasyBuild !
@@ -350,7 +262,7 @@ example_dict = {
                     "name": "zlib@1.2.13",   # in Spack it depends on the virtual zlib-api (zlib or zlib-ng)
                     "depflags": ["BUILD", "LINK"],
                 },
-                # libarchive, bzip2, openssl --> not dependencies in cmake Spack package
+                # libarchive, bzip2, openssl 3 --> not dependencies in cmake Spack package
                 {
                     "name": "libarchive@3.7.2%gcc@13.2.0",  # in Spack it is not needed if +ownlib
                     "depflags": ["BUILD", "LINK"],

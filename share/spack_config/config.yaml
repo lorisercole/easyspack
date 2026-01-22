@@ -1,0 +1,3 @@
+config:
+  install_tree:
+    root: /home/lercole/eessi/spack/opt  # a directory where you have write permissions
