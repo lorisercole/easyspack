@@ -1,5 +1,8 @@
 """
-Custom Spack Databse class
+Custom Spack Database class
+
+Mod Spack Database class to allow paths to be external for non external specs.
+Useful to define upstream packages that are not located in the standard Spack install tree
 """
 from typing import Optional
 

@@ -15,9 +15,9 @@ from spack.spec import Spec, FlagMap, substitute_abstract_variants
 from spack.util.libc import libc_from_dynamic_linker
 
 from . import models
-from .database import Database
+from ..database import Database
 from .schema import SPEC_SCHEMA
-from .exceptions import ValidationError, DatabaseError
+from ..exceptions import ValidationError, DatabaseError
 import re
 
 logger = logging.getLogger(__name__)

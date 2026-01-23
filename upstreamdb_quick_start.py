@@ -18,8 +18,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 import spack
-from ebspack import SpecLoader, add_packages_to_config
-# from examples.example import example_dict
+from ebspack.legacy import SpecLoader, add_packages_to_config
+
 from examples.upstream_db.eessi_example import example_dict
 
 SPACK_DATABASE = "/home/lercole/eessi/spack/upstreams/eessi"
