@@ -32,10 +32,10 @@
 
 
 ## 1. Old approach: create custom upstream database
-- all packages should have runtime and link dependencies declared -- automatically injected by ebspack
+- all packages should have runtime and link dependencies declared -- automatically injected by easyspack
 - compilers (gcc) should not have dependencies, but have `extra_attributes` with compiler paths
 - `glibc` is detected and dependencies are automatically added
-- `gcc-runtime` is automatically injected by ebspack
+- `gcc-runtime` is automatically injected by easyspack
 - dependencies are automatically sorted by name by the loader
 - default variants are automatically added by the loader if not specified. This seems the best approach with the current solver
 

@@ -69,7 +69,7 @@ spack-python upstreamdb_quick_start.py
 ```
 
 ### 2. (Legacy) Custom upstream DB via JSON
-This older approach uses `SpecLoader` in [ebspack/loader.py](ebspack/loader.py) to read a dictionary provided by the user (following [ebspack/schema.py](ebspack/schema.py)), generate concrete specs, inject runtime libs, and writes a full upstream DB. This flow is kept for reference but it is superseded by the external packages approach.
+This older approach uses `SpecLoader` in [easyspack/loader.py](easyspack/loader.py) to read a dictionary provided by the user (following [easyspack/schema.py](easyspack/schema.py)), generate concrete specs, inject runtime libs, and writes a full upstream DB. This flow is kept for reference but it is superseded by the external packages approach.
 
 > ***Example script***\
 > [`upstreamdb_quick_start.py`](upstreamdb_quick_start.py) : example script for this approach, that uses the [`examples/upstream_db/eesi_example.py`](examples/upstream_db/eessi_example.py) example data.
@@ -95,7 +95,7 @@ module unuse ${MODULEPATH} && module use /cvmfs/software.eessi.io/init/modules &
 
 ### Use
   - Most of the scripts in this package should be run using the `spack-python` wrapper. This ensures the Spack is correctly imported and initialized.
-  - Set the env variable `EBSPACK_DEBUG=1` for verbose logging.
+  - Set the env variable `EASYSPACK_DEBUG=1` for verbose logging.
 
 ### Spack configuration
 If you want to define a custom Spack user-scope configuration directory, you can set these env vars as reported in the [documentation](https://spack.readthedocs.io/en/latest/configuration.html#overriding-local-configuration):
@@ -112,9 +112,9 @@ The available configuration files exemplify a typical custom Spack user-scope co
 
 
 ## Repository layout
-- [ebspack/ext_install.py](ebspack/ext_install.py): core logic for externals parsing, runtime dep injection, and database writes via Spack's `UpstreamInstaller` modded class.
-- [ebspack/loader.py](ebspack/loader.py): legacy loader for JSON-driven upstream DB population (`SpecLoader`).
-- [ebspack/database.py](ebspack/database.py): Spack `Database` subclass that accepts non-standard prefixes for upstream entries.
+- [easyspack/ext_install.py](easyspack/ext_install.py): core logic for externals parsing, runtime dep injection, and database writes via Spack's `UpstreamInstaller` modded class.
+- [easyspack/loader.py](easyspack/loader.py): legacy loader for JSON-driven upstream DB population (`SpecLoader`).
+- [easyspack/database.py](easyspack/database.py): Spack `Database` subclass that accepts non-standard prefixes for upstream entries.
 - [examples/](examples): sample externals YAMLs and JSON configs used by the scripts.
 
 
@@ -128,8 +128,8 @@ The available configuration files exemplify a typical custom Spack user-scope co
 - The externals flow can detect additional packages under `EESSI_EPREFIX`/`usr`; disable detection if you need a minimal set.
 
 ## Logging and debugging
-- Set `EBSPACK_DEBUG=1` to switch ebspack logging to debug level.
-- The custom formatter in [ebspack/__init__.py](ebspack/__init__.py) prefixes debug logs with the emitting logger name.
+- Set `EASYSPACK_DEBUG=1` to switch easyspack logging to debug level.
+- The custom formatter in [easyspack/__init__.py](easyspack/__init__.py) prefixes debug logs with the emitting logger name.
 
 ## Notes and caveats
 - Only link/runtime deps need to be declared for externals that may be reused by Spack; pure build deps can often be omitted.

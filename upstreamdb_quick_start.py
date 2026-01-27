@@ -1,16 +1,16 @@
 #!/usr/bin/env spack-python
 """
-[OBSOLETE] Upstream database creation method using ebspack.
+[OBSOLETE] Upstream database creation method using easyspack.
 ---
 
 Configure Spack user paths before running this script:
-    export SPACK_USER_CONFIG_PATH=/home/lercole/ebspack/spack
-    export SPACK_USER_CACHE_PATH=/home/lercole/ebspack/spack/cache
+    export SPACK_USER_CONFIG_PATH=/home/lercole/easyspack/spack
+    export SPACK_USER_CACHE_PATH=/home/lercole/easyspack/spack/cache
 or
     export SPACK_USER_CONFIG_PATH=/home/lercole/eessi/spack
     export SPACK_USER_CACHE_PATH=/home/lercole/eessi/spack/cache
 
-EBSPACK_DEBUG=1 ./upstreamdb_quick_start.py
+EASYSPACK_DEBUG=1 ./upstreamdb_quick_start.py
 """
 
 import os
@@ -18,7 +18,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import spack
-from ebspack.legacy import SpecLoader, add_packages_to_config
+from easyspack.legacy import SpecLoader, add_packages_to_config
 
 from examples.upstream_db.eessi_example import example_dict
 

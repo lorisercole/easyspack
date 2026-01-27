@@ -112,7 +112,7 @@ example_dict = {
         #     "name": "zlib",  # filtered dependency in EESSI
         #     "version": "1.3.1",  # EBVERSIONZLIB
         #     "variants": "",
-        #     "external_path": "/home/lercole/ebspack/software/zlib/1.3.1-GCCcore-13.2.0", # EBROOTZLIB
+        #     "external_path": "/home/lercole/easyspack/software/zlib/1.3.1-GCCcore-13.2.0", # EBROOTZLIB
         #     "dependencies": [
         #         {
         #             "name": "gcc@13.2.0",
@@ -260,7 +260,7 @@ example_dict = {
         #     "name": "ncurses",  # filered dependency in EESSI
         #     "version": "6.5",  # EBVERSIONNCURSES
         #     "variants": "abi=6",  # detectable by Spack
-        #     "external_path": "/home/lercole/ebspack/software/ncurses/6.5-GCCcore-13.2.0", # EBROOTNCURSES
+        #     "external_path": "/home/lercole/easyspack/software/ncurses/6.5-GCCcore-13.2.0", # EBROOTNCURSES
         #     "dependencies": [
         #         {
         #             "name": "gcc@13.2.0",
@@ -282,7 +282,7 @@ example_dict = {
         #     "name": "bzip2",
         #     "version": "1.0.8",  # EBVERSIONBZIP2
         #     "variants": "",
-        #     "external_path": "/home/lercole/ebspack/software/bzip2/1.0.8-GCCcore-13.2.0", # EBROOTBZIP2
+        #     "external_path": "/home/lercole/easyspack/software/bzip2/1.0.8-GCCcore-13.2.0", # EBROOTBZIP2
         #     "dependencies": [
         #         {
         #             "name": "gcc@13.2.0",

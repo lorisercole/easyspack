@@ -1,5 +1,5 @@
 """
-EasySpack (ebspack)
+EasySpack (easyspack)
 """
 
 from .exceptions import SpecLoaderError, ValidationError, DatabaseError
@@ -23,6 +23,6 @@ class DebugOnlyFormatter(logging.Formatter):
         return super().format(r)
 
 # Setup logging
-logging.basicConfig(level=logging.DEBUG if os.getenv("EBSPACK_DEBUG") else logging.INFO)
+logging.basicConfig(level=logging.DEBUG if os.getenv("EASYSPACK_DEBUG") else logging.INFO)
 for h in logging.root.handlers:
     h.setFormatter(DebugOnlyFormatter("%(levelprefix)s%(name)s%(message)s"))

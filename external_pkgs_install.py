@@ -1,6 +1,6 @@
 #!/usr/bin/env spack-python
 """
-[EXTRA FEATURE] Install external packages in a Spack upstream database using ebspack
+[EXTRA FEATURE] Install external packages in a Spack upstream database using easyspack
 
 Reads external packages from a YAML file, detect OS packages, installs them into Spack upstream database, and generates
 `packages.yaml` entries (Spack needs to see compilers here).
@@ -9,7 +9,7 @@ Configure Spack user paths before running this script:
     export SPACK_USER_CONFIG_PATH=/home/lercole/eessi/spack
     export SPACK_USER_CACHE_PATH=/home/lercole/eessi/spack/cache
 
-EBSPACK_DEBUG=1 ./external_pkgs_install.py
+EASYSPACK_DEBUG=1 ./external_pkgs_install.py
 """
 
 import os
@@ -17,7 +17,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import spack
-from ebspack.ext_install import UpstreamInstaller
+from easyspack.ext_install import UpstreamInstaller
 
 SPACK_DATABASE = "/home/lercole/eessi/spack/upstreams/eessi"  # path to Spack upstream database
 OS_PKGS_PATHS = [

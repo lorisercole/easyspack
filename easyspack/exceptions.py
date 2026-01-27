@@ -1,10 +1,10 @@
 """
-Custom exceptions for the ebspack package.
+Custom exceptions for the easyspack package.
 """
 
 
 class SpecLoaderError(Exception):
-    """Base exception for all ebspack errors."""
+    """Base exception for all easyspack errors."""
     pass
 
 
