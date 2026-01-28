@@ -1,6 +1,6 @@
 # NOTES
 
-## General notes
+## General notes about Spack
 - pure build dependencies are not included in Spack solve, but they affect the hash
 - a node has a hash determined by the content of `node.to_node_dict()`
 - installed compiled packages typically have `gcc-runtime` and `glibc` link deps.
@@ -8,7 +8,7 @@
 - the only BUILD dependency needed is the compiler with `c/cxx/fortran` virtuals, this shows which compiler was used to build the pkg
 - skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems
 - if a version does not exist in Spack, it is not a problem
-- we need to be careful with EESSI compat layer, and packages that have been filtered out (e.g. glibc, binutils, etc)\
+- we need to be careful with **EESSI compat layer**, and packages that have been filtered out (e.g. glibc, binutils, etc)\
   **EESSI filtered dependencies**:
   - Autoconf
   - Automake

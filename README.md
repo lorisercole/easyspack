@@ -3,84 +3,16 @@
 EasySpack is a set of utilities that exposes packages built with [EasyBuild](https://easybuild.io) and distributed by [EESSI](https://www.eessi.io) to [Spack](https://spack.io). 
 This makes Spack aware of the available EasyBuild/EESSI installation, thus letting it reuse the available packages when building new ones.
 
-Most of the examples consider an existing EESSI installation, but similar logic can be applied to any EasyBuild installation that uses rpaths.
-
-<!--
-It can:
-
-- Parse EESSI metadata and emit Spack externals, including compiler/runtime glue such as `gcc-runtime` and `glibc`.
-- Detect additional system packages (e.g. from the EESSI compatibility layer) and add them automatically.
-- Write the externals into a Spack upstream database and optionally update `packages.yaml` so Spack can reuse them.
--->
-
-## Approaches at a glance (see blog/NOTES.md)
-### 1. (New) Externals + dependencies (preferred)
-This is the official Spack-onic way of exposing an EESSI installation to a Spack installation.
-It consists of these steps:
-  - Declare EESSI software-layer builds as external packages in a `packages.yaml` Spack configuration file (with [external dependencies](https://spack.readthedocs.io/en/latest/packages_yaml.html#specifying-dependencies-among-external-packages)).
-    Example: [`examples/ext_install/externals_nocompat.yaml`](examples/ext_install/externals_nocompat.yaml).
-  - (optionally) detect OS packages available under the EESSI compat-layer, and configure Spack to use them as externals. In EESSI, these packages are often dependencies of software-layer packages, so it is suggested to include them.
-  - Externals are then visible via `spack find --show-configured-externals` and get reused during Spack solves by default.
-
-> ***Example script***\
-> TO BE ADDED
-
-#### 1.a (optional) Convert externals into an upstream database
-The above will suffice to have Spack reuse an available software stack. The only packages that Spack will have to "build" are:
-  - `gcc-runtime` : Spack will simply copy the GCC runtime libraries into the local installation folder. This is a small 
-  - `compiler-wrapper` : Spack's own compiler wrapper
-  - anything that is not available as external package, of course
-
-Externals defined in a YAML file such as [`examples/ext_install/packages.yaml`](examples/ext_install/packages.yaml) can be converted into a Spack database that can be used as upstream. Runtime deps (`glibc`, `gcc-runtime`) can be automatically injected. 
-This is not the officially-supported method, but it works, and it should avoid the need to have a separate `gcc-runtime` copy. Packages can b
-
-> ***Example script***\
-> [`external_pkgs_install.py`](external_pkgs_install.py): reads an externals YAML file, injects runtime deps, detects OS packages, installs them into a Spack upstream DB, and updates `packages.yaml`.
-
-What happens:
-  - `UpstreamInstaller` parses the YAML, completes architectures/variants, and injects `glibc`/`gcc-runtime` runtime dependencies when relevant.
-  - Additional detectable packages under `EESSI_EPREFIX` and `EESSI_EPREFIX/usr` are discovered and added as externals.
-  - All externals are registered into the upstream DB at `/home/lercole/eessi/spack/upstreams/eessi`. Compilers are added to a `packages.yaml`.
-
-
-## Legacy workflow: JSON spec loader (obsolete)
-
-
-Minimal JSON structure:
-```json
-{
-	"software_target": "skylake",
-	"specs": [
-		{
-			"name": "fftw",
-			"version": "3.3.10",
-			"external_path": "/cvmfs/.../FFTW/3.3.10-GCC-13.2.0",
-			"variants": "+openmp",
-			"dependencies": [
-				{"name": "gcc@13.2.0", "depflags": ["BUILD"], "virtuals": ["c", "cxx", "fortran"]}
-			]
-		}
-	]
-}
-```
-Run with:
-```bash
-spack-python upstreamdb_quick_start.py
-```
-
-### 2. (Legacy) Custom upstream DB via JSON
-This older approach uses `SpecLoader` in [easyspack/loader.py](easyspack/loader.py) to read a dictionary provided by the user (following [easyspack/schema.py](easyspack/schema.py)), generate concrete specs, inject runtime libs, and writes a full upstream DB. This flow is kept for reference but it is superseded by the external packages approach.
-
-> ***Example script***\
-> [`upstreamdb_quick_start.py`](upstreamdb_quick_start.py) : example script for this approach, that uses the [`examples/upstream_db/eesi_example.py`](examples/upstream_db/eessi_example.py) example data.
+Most of the examples provided consider an existing EESSI installation, but similar logic can be applied to any EasyBuild installation that uses rpaths.
 
 
 ## Requirements
 - Python 3.7+
 - Spack 1.1+ (ideally Spack 1.2, will include several bug fixes and improvements)
-  > [!IMPORTANT]
+  > **IMPORTANT**\
   > At the moment, to work with EESSI, you must use a patched version of Spack: https://github.com/lorisercole/spack/tree/eessi
 - EESSI environment if you want to mirror the published stacks.
+
 
 ## Installation & use
 Development installation:
@@ -96,6 +28,7 @@ module unuse ${MODULEPATH} && module use /cvmfs/software.eessi.io/init/modules &
 ### Use
   - Most of the scripts in this package should be run using the `spack-python` wrapper. This ensures the Spack is correctly imported and initialized.
   - Set the env variable `EASYSPACK_DEBUG=1` for verbose logging.
+  - Check the [sections below](#approach-1-preferred-externals--dependencies) for specific instructions and examples.
 
 ### Spack configuration
 If you want to define a custom Spack user-scope configuration directory, you can set these env vars as reported in the [documentation](https://spack.readthedocs.io/en/latest/configuration.html#overriding-local-configuration):
@@ -110,31 +43,104 @@ Example of configuration files can be found in the [`share/spack_config`](share/
 
 The available configuration files exemplify a typical custom Spack user-scope configuration that would work with a system/site installation of Spack. The user should have write access to the paths defined in `config.yaml` and `modules.yaml`.
 
+---
 
-## Repository layout
-- [easyspack/ext_install.py](easyspack/ext_install.py): core logic for externals parsing, runtime dep injection, and database writes via Spack's `UpstreamInstaller` modded class.
-- [easyspack/loader.py](easyspack/loader.py): legacy loader for JSON-driven upstream DB population (`SpecLoader`).
-- [easyspack/database.py](easyspack/database.py): Spack `Database` subclass that accepts non-standard prefixes for upstream entries.
-- [examples/](examples): sample externals YAMLs and JSON configs used by the scripts.
+## Approach #1 [preferred]: Externals + dependencies
+This is the official *Spack-onic* way of exposing EESSI software builds to a Spack installation.
+
+It consists of these steps:
+  - Declare EESSI software-layer builds as [external packages](https://spack.readthedocs.io/en/latest/packages_yaml.html#external-packages) in a `packages.yaml` Spack configuration file (with [external dependencies](https://spack.readthedocs.io/en/latest/packages_yaml.html#specifying-dependencies-among-external-packages)).\
+  *Example:* [`examples/ext_install/externals_nocompat.yaml`](examples/ext_install/externals_nocompat.yaml).
+
+  - (optional, suggested) detect OS packages available under the EESSI compat-layer, and configure Spack to use them as externals. In EESSI, these packages are often dependencies of software-layer packages, so it is suggested to include them.
+
+  - Externals are then visible via `spack find --show-configured-externals` and get reused during Spack solves by default.
+
+The steps above will suffice to have Spack reuse an available software stack. 
+The first time you want to concretize a new spec that is not yet installed, the only packages that Spack may have to "build" are:
+  - `gcc-runtime` : Spack will simply copy the GCC runtime libraries into the local installation folder. This is a small set of libraries.
+  - `compiler-wrapper` : Spack's own compiler wrapper, needed to compile packages.
+  - anything that is not available as external package, of course.
+
+### Example
+Run the example script...
+
+> ** TO BE ADDED **
+> `EESSI_EPREFIX` and `EESSI_EPREFIX/usr`
+
+The result is a `packages.yaml` file that includes software-layer and compat-layer packages, like [`examples/ext_install/packages.yaml`](examples/ext_install/packages.yaml).
+
+Let's now try to build a new version of Quantum ESPRESSO, without MPI support:
+```
+$ spack spec -Ilt quantum-espresso~mpi
+ -   [    ]  quantum-espresso@7.4.1~clock+epw~fox~gipaw~ipo~libxc~mpi~nvtx+openmp+patch~qmcpack build_system=cmake build_type=Release generator=make hdf5=none platform=linux os=ubuntu24.04 target=skylake %c,cxx,fortran=gcc@13.2.0
+[e]  [b   ]      ^cmake@3.31.8~doc+ncurses+ownlibs~qtgui build_system=generic build_type=Release platform=linux os=ubuntu24.04 target=haswell %c,cxx=gcc@13.2.0
+[e]  [ l  ]          ^bzip2@1.0.8~debug~pic+shared build_system=generic platform=linux os=ubuntu24.04 target=x86_64
+[e]  [bl  ]          ^curl@8.3.0~gssapi~ldap~libidn2~librtmp~libssh~libssh2+nghttp2 build_system=autotools libs:=shared,static tls:=openssl platform=linux os=ubuntu24.04 target=haswell %c,cxx=gcc@13.2.0
+[e]  [bl  ]          ^libarchive@3.7.2+iconv build_system=autotools compression:=bz2lib,lz4,lzma,lzo2,zlib,zstd crypto=openssl libs:=shared,static programs:=none xar=libxml2 platform=linux os=ubuntu24.04 target=haswell %c,cxx=gcc@13.2.0
+[e]  [bl  ]          ^ncurses@6.4.20230401+symlinks+termlib abi:=6 build_system=autotools platform=linux os=ubuntu24.04 target=x86_64
+[e]  [bl  ]          ^openssl@1.1.1w~docs+shared build_system=generic certs=mozilla platform=linux os=ubuntu24.04 target=x86_64
+[e]  [bl  ]          ^zlib@1.2.13+optimize+pic+shared build_system=makefile platform=linux os=ubuntu24.04 target=x86_64
+ -   [b   ]      ^compiler-wrapper@1.0 build_system=generic platform=linux os=ubuntu24.04 target=skylake
+[e]  [bl  ]      ^fftw@3.3.10~mpi+openmp~pfft_patches+shared build_system=autotools precision:=double,float,long_double,quad platform=linux os=ubuntu24.04 target=haswell %c,fortran=gcc@13.2.0
+[e]  [b   ]      ^gcc@13.2.0~binutils+bootstrap~graphite~mold~nvptx~piclibs~profiled~strip build_system=autotools build_type=RelWithDebInfo languages:='c,c++,fortran' platform=linux os=ubuntu24.04 target=haswell
+ -   [ l  ]      ^gcc-runtime@13.2.0 build_system=generic platform=linux os=ubuntu24.04 target=skylake
+[e]  [b   ]      ^git@2.41.0+man+nls+perl+subtree~svn~tcltk build_system=autotools platform=linux os=ubuntu24.04 target=x86_64
+[e]  [ l  ]      ^glibc@2.37 build_system=autotools platform=linux os=ubuntu24.04 target=x86_64
+[e]  [b   ]      ^gmake@4.4.1~guile build_system=generic platform=linux os=ubuntu24.04 target=haswell %c=gcc@13.2.0
+[e]  [b   ]      ^m4@1.4.19+sigsegv build_system=autotools platform=linux os=ubuntu24.04 target=x86_64
+[e]  [bl  ]      ^openblas@0.3.24~bignuma~consistent_fpcsr+dynamic_dispatch+fortran~ilp64+locking+pic+shared build_system=makefile symbol_suffix=none threads:=openmp platform=linux os=ubuntu24.04 target=haswell %c,cxx,fortran=gcc@13.2.0
+```
+Most of the dependencies are taken from EESSI as external packages. Only `gcc-runtime` and `compiler-wrapper` need to be built.\
+
+The default build target (microarchitecture) is the one detected by `spack arch`, i.e. "skylake" in this case.\
+Notice however that the software provided by EESSI and reused by Spack was built for the "haswell" microarchitecture, that is compatible with skylake.\
+Packages from the compat-layer are built for an even more generic architecture: "x86_64".
+
+### Practical notes on `packages.yaml` definition
+- **Specs**:
+  - Default variants are automatically completed by Spack concretizer if they are not specified. This behavior can be [configured](https://spack.readthedocs.io/en/latest/build_settings.html#completion-of-external-nodes), but it seems the best approach according to our tests.
+  - If a version of a package does not exist in Spack, that is not a problem.
+
+- **Dependencies**:
+  - Only *link* & *runtime* dependencies need to be declared for externals that might be reused; pure build deps can be omitted.
+  - Only exception: it is advised to specify the *compiler* as *build*-type dependency. Spack may use this information when deciding which packages to reuse.
+  - Skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems. But you should declare dependencies that you know of according to the above considerations.
+  - If you declare a dependency that is not supposed to be a dependency according to the package Spack recipe, it is not a problem.
+  - `glibc` is detected and injected automatically by Spack when compilers are present.
+
+- **Compilers**:
+  - Compilers do not need dependencies, but you should specify `extra_attributes` with compiler paths pointing to the compiler binaries, see [spack docs](https://spack.readthedocs.io/en/latest/packages_yaml.html#configuring-system-compilers-as-external-packages).
+
+- **EESSI specific considerations**:
+  - The EESSI compatibility layer filters some packages (e.g., `glibc`, `binutils`, `ncurses`, `xz`); be cautious when mirroring or detecting from it.
+  - Some packages are filtered out in EESSI, as they are installed in the **compatibility layer**:\
+    `Autoconf`, `Automake`, `Autotools`, `binutils`, `bzip2`, `DBus`, `flex`, `gettext`, `gperf`, `help2man`, `intltool`, `libreadline`, `libtool`, `M4`, `makeinfo`, `ncurses`, `util-linux`, `XZ`, `zlib`.
+  - If you want to explicitly declare a dependency on one of them, you should detect them using `spack external find`, as explained in the example above, in order to make sure they are included in `packages.yaml`.
+
+- See [NOTES.md](notes/NOTES.md) for more technical information.
 
 
+### [experimental, optional] Convert externals into an upstream database
+Externals defined in a YAML file such as [`examples/ext_install/packages.yaml`](examples/ext_install/packages.yaml) can be converted into a Spack database that can be then used as an upstream database, without the need to define external packages. Runtime deps (`glibc`, `gcc-runtime`) can be automatically injected.
+
+This is not the officially-supported method, but it works, and it should avoid the need to have a separate `gcc-runtime` copy. The only packages that need to be defined in `packages.yaml` are compilers.
+
+> ***Example script***: [`external_pkgs_install.py`](external_pkgs_install.py)\
+> Reads a YAML file defining externals, like [`examples/ext_install/externals_nocompat.yaml`](examples/ext_install/externals_nocompat.yaml), injects runtime deps, detects OS packages, installs them into a Spack upstream DB, and updates `packages.yaml`.
+
+What happens:
+  - `UpstreamInstaller` parses the YAML, completes architectures/variants, and injects `glibc`/`gcc-runtime` runtime dependencies when relevant.
+  - Additional detectable packages under `EESSI_EPREFIX` and `EESSI_EPREFIX/usr` are discovered and added as externals.
+  - All externals are registered into the upstream DB at `/home/lercole/eessi/spack/upstreams/eessi`. Only compilers are added to a `packages.yaml`.
 
 
-## Practical notes and gotchas
-- Only link/runtime deps need to be declared for externals that might be reused; pure build deps rarely matter for reuse and can be omitted.
-- Build deps still influence the DAG hash; keep them consistent if you care about reproducibility.
-- `glibc` is injected automatically when compilers are present; `gcc-runtime` is added when a GCC external is defined. Other compiler runtimes are not yet implemented.
-- The EESSI compatibility layer filters some packages (e.g., `glibc`, `binutils`, `ncurses`, `xz`); be cautious when mirroring or detecting from it.
-- The externals flow can detect additional packages under `EESSI_EPREFIX`/`usr`; disable detection if you need a minimal set.
+## Approach #2 [legacy/obsolete]: Custom upstream DB via JSON
+This older approach uses `SpecLoader` in [easyspack/loader.py](easyspack/loader.py) to read a dictionary provided by the user (following [easyspack/schema.py](easyspack/schema.py)), generate concrete specs, inject runtime libs, and writes a full upstream DB. This flow is kept for reference, but it is superseded by the external packages approach.
 
-## Logging and debugging
-- Set `EASYSPACK_DEBUG=1` to switch easyspack logging to debug level.
-- The custom formatter in [easyspack/__init__.py](easyspack/__init__.py) prefixes debug logs with the emitting logger name.
-
-## Notes and caveats
-- Only link/runtime deps need to be declared for externals that may be reused by Spack; pure build deps can often be omitted.
-- `glibc` is injected automatically when compilers are present; `gcc-runtime` is added when a GCC external is defined.
-- The JSON flow expects `external_path` to exist on disk; paths are treated as prefixes when writing to the upstream DB.
+> ***Example script***: [`upstreamdb_quick_start.py`](upstreamdb_quick_start.py)\
+> Example script for this approach, that uses the [`examples/upstream_db/eesi_example.py`](examples/upstream_db/eessi_example.py) example data.\
+> **Note**: only works with Spack 1.1
 
 
 ## Contributing
