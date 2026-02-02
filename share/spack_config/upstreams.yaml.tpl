@@ -3,4 +3,4 @@
 # only read permissions are needed
 upstreams:
   eessi:
-    install_tree: /home/lercole/eessi/spack/upstreams/eessi
+    install_tree: ${INSTALL_BASE_PATH}/upstreams/eessi

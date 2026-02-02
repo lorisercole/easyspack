@@ -1,9 +1,0 @@
-# only if you want Spack to generate module files
-modules:
-  default:
-    roots:
-      lmod: /home/lercole/eessi/spack/modules  # a directory where you have write permissions
-      # tcl: /home/lercole/eessi/spack/modules  # uncomment if you want Tcl modules
-    lmod:
-      core_compilers:
-        - 'gcc'

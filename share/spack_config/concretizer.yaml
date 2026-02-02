@@ -1,0 +1,5 @@
+concretizer:  # all these settings are Spack defaults
+  reuse: true
+  unify: true
+  externals:
+    completion: default_variants
