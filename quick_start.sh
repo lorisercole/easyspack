@@ -95,14 +95,19 @@ cd $DEMO_DIR
 # Copy/generate configuration files using pre-defined SPACK_USER_CONFIG_PATH
 echo -e "\033[1;38m • Copying/generating Spack configuration files...\033[0m"
 cp $SHARE_DIR/concretizer.yaml $SPACK_USER_CONFIG_PATH/concretizer.yaml
+echo "   - $SHARE_DIR/concretizer.yaml -->  $SPACK_USER_CONFIG_PATH/concretizer.yaml"
 export INSTALL_BASE_PATH=$DEMO_DIR
 envsubst < $SHARE_DIR/config.yaml.tpl > $SPACK_USER_CONFIG_PATH/config.yaml
+echo "   - $SHARE_DIR/config.yaml.tpl  -->  $SPACK_USER_CONFIG_PATH/config.yaml"
 envsubst < $SHARE_DIR/modules.yaml.tpl > $SPACK_USER_CONFIG_PATH/modules.yaml
+echo "   - $SHARE_DIR/modules.yaml.tpl -->  $SPACK_USER_CONFIG_PATH/modules.yaml"
 # envsubst < $SHARE_DIR/upstreams.yaml.tpl > $SPACK_USER_CONFIG_PATH/upstreams.yaml
+# echo "   - $SHARE_DIR/upstreams.yaml.tpl  -->  $SPACK_USER_CONFIG_PATH/upstreams.yaml"
 
 # Copy and rename externals to packages.yaml
 echo -e "\033[1;38m • Creating packages.yaml from externals_nocompat.yaml...\033[0m"
 cp $EXAMPLES_DIR/externals_nocompat.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
+echo "   - $EXAMPLES_DIR/externals_nocompat.yaml  -->  $SPACK_USER_CONFIG_PATH/packages.yaml"
 
 # Bootstrap Spack
 echo -e "\033[1;38m • Bootstrapping Spack...\033[0m"
@@ -117,19 +122,19 @@ done
 
 echo
 echo -e "\033[1;38m============  Setup Complete  ============\033[0m"
+echo
 cat << EOF
-To use this demo Spack installation, run:
+  To use this demo Spack installation, run:
 
-  export SPACK_USER_CONFIG_PATH=$DEMO_DIR
-  export SPACK_USER_CACHE_PATH=$DEMO_DIR/cache
+    export SPACK_USER_CONFIG_PATH=$DEMO_DIR
+    export SPACK_USER_CACHE_PATH=$DEMO_DIR/cache
 
-Spack config directory:   $DEMO_DIR"
-Spack install directory:  $DEMO_DIR/opt"
-Spack modules directory:  $DEMO_DIR/modules"
+  Spack config directory:   $DEMO_DIR"
+  Spack install directory:  $DEMO_DIR/opt"
+  Spack modules directory:  $DEMO_DIR/modules"
 
 EOF
 echo -e "\033[1;38m============  Demo Commands  ============\033[0m"
-exit 0
 
 # 1. Show configured externals
 echo -e "\033[1;38m 1. List configured external packages:\033[0m"

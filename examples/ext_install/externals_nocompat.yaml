@@ -1,4 +1,5 @@
 # Example of packages.yaml file for EESSI software stack without compat-layer packages (to be added by detection tool)
+# EESSI detected microarchitecture: haswell
 packages:
   gcc:
     externals:

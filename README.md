@@ -29,7 +29,11 @@ module unuse ${MODULEPATH} && module use /cvmfs/software.eessi.io/init/modules &
 ### Use
   - Most of the scripts in this package should be run using the `spack-python` wrapper. This ensures the Spack is correctly imported and initialized.
   - Set the env variable `EASYSPACK_DEBUG=1` for verbose logging.
-  - Check the [sections below](#approach-1-preferred-externals--dependencies) for specific instructions and examples. A [**quick-start demo example**](#demo-example-script) is provided.
+
+Check the [sections below](#approach-1-preferred-externals--dependencies) for detailed instructions and examples. Three **scripts** are provided:
+  - [`quick_start`](quick_start.sh): demo script showing the *recommended* way to set up Spack to reuse EESSI packages according to [Approach #1](#approach-1-preferred-externals--dependencies).
+  - [`external_pkgs_install.py`](external_pkgs_install.py): script to convert a YAML file defining externals into an upstream DB, according to the *experimental* method described in [section #1.b](#1b-experimental-optional-convert-externals-into-an-upstream-database).
+  - [`upstreamdb_legacy.py`](upstreamdb_legacy.py): script implementing the *legacy* approach based on a customly-created upstream DB, as described in [Approach #2](#approach-2-legacyobsolete-custom-upstream-db-via-json).
 
 ### Spack configuration
 If you want to define a custom Spack user-scope configuration directory, you can set the following env vars, as described in the [documentation](https://spack.readthedocs.io/en/latest/configuration.html#overriding-local-configuration):
@@ -63,7 +67,7 @@ This is the official *Spack-onic* way of exposing EESSI software builds to a Spa
 
 It consists of these steps:
   - Declare EESSI software-layer builds as [external packages](https://spack.readthedocs.io/en/latest/packages_yaml.html#external-packages) in a `packages.yaml` Spack configuration file (with [external dependencies](https://spack.readthedocs.io/en/latest/packages_yaml.html#specifying-dependencies-among-external-packages)).\
-  *Example:* [`examples/ext_install/externals_nocompat.yaml`](examples/ext_install/externals_nocompat.yaml).
+  *Example:* [`examples/ext_install/externals_nocompat.yaml`](examples/ext_install/externals_nocompat.yaml) (assuming that a *haswell* microarchitecture was detected by EESSI).
 
   - (optional, suggested) detect OS packages available under the EESSI compat-layer, and configure Spack to use them as externals. In EESSI, these packages are often dependencies of software-layer packages, so it is suggested to include them. This can be done with:
     ```bash
@@ -112,6 +116,8 @@ Notice however that the software provided by EESSI and reused by Spack was built
 
 Packages from the compat-layer are built for an even more generic architecture: "*x86_64*".
 
+> **NOTE** : this example demo script will only reuse packages successfully if the host microarchitecture is compatible with haswell. A similar workflow can be applied to other microarchitectures, provided that a corresponding `packages.yaml` is created.
+
 
 ### Practical notes on `packages.yaml` definition
 - **Specs**:
@@ -123,6 +129,7 @@ Packages from the compat-layer are built for an even more generic architecture: 
   - Only exception: it is advised to specify the *compiler* as *build*-type dependency. Spack may use this information when deciding which packages to reuse.
   - Skipping dependencies that are not needed for EasyBuild or Spack does not seem to lead to problems. But you should declare dependencies that you know of according to the above considerations.
   - If you declare a dependency that is not supposed to be a dependency according to the package Spack recipe, it is not a problem.
+  - If a dependency is known to Spack, you do not need to specify its `deptypes`, as Spack will automatically complete them.
   - `glibc` is detected and injected automatically by Spack when compilers are present.
 
 - **Compilers**:
@@ -137,7 +144,7 @@ Packages from the compat-layer are built for an even more generic architecture: 
 - See [NOTES.md](notes/NOTES.md) for more technical information.
 
 
-### [experimental, optional] Convert externals into an upstream database
+### #1.b [experimental, optional] Convert externals into an upstream database
 Externals defined in a YAML file such as [`examples/ext_install/packages.yaml`](examples/ext_install/packages.yaml) can be converted into a Spack database that can be then used as an upstream database, without the need to define external packages. Runtime deps (`glibc`, `gcc-runtime`) can be automatically injected.
 
 This is not the officially-supported method, but it works, and it should avoid the need to have a separate `gcc-runtime` copy. The only packages that need to be defined in `packages.yaml` are compilers.
