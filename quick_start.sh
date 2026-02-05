@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Set default demo directory if not provided
-DEMO_DIR=$(realpath "${DEMO_DIR:-demo_easyspack}")
+export DEMO_DIR=$(realpath "${DEMO_DIR:-demo_easyspack}")
 
 # Create demo directory if it doesn't exist
 mkdir -p "$DEMO_DIR"

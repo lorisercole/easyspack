@@ -88,6 +88,15 @@ The first time you want to concretize a new spec that is not yet installed, the 
 The [`quick_start.sh`](quick_start.sh) bash script demonstrates the recommended approach to configure a new Spack installation and prepare the `packages.yaml` config file that exposes EESSI-provided packages to Spack.
 The generated `packages.yaml` file includes software-layer and compat-layer packages, and should be equivalent to [`examples/ext_install/packages.yaml`](examples/ext_install/packages.yaml).
 
+<details>
+<summary>Example output of `quick_start.sh`</summary>
+
+![Output of `quick_start.sh`](notes/easyspack-demo-1.webp)
+![Output of `quick_start.sh`](notes/easyspack-demo-2.webp)
+![Output of `quick_start.sh`](notes/easyspack-demo-2.webp)
+
+</details>
+
 It will then try to build a new version of Quantum ESPRESSO (without MPI support):
 ```
 $ spack spec -Ilt quantum-espresso~mpi
