@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for the easyspack package.
+Setup script for the spood package.
 """
 
 from setuptools import setup, find_packages
@@ -11,14 +11,14 @@ readme_file = Path(__file__).parent / "README.md"
 long_description = readme_file.read_text() if readme_file.exists() else ""
 
 setup(
-    name="easyspack",
+    name="spood",
     version="0.1.0",
     description="A bridge between EESSI/EasyBuild and Spack",
     long_description=long_description,
     long_description_content_type="text/markdown",
     author="Loris Ercole",
     author_email="loris.ercole@epfl.ch",
-    url="https://github.com/lorisercole/easyspack",
+    url="https://github.com/lorisercole/spood",
     packages=find_packages(),
     python_requires=">=3.7",
     install_requires=[
@@ -47,5 +47,5 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    keywords="spack package-manager specs database easybuild eessi",
+    keywords="spack package-manager specs database easybuild eessi spood",
 )

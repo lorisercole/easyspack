@@ -1,20 +1,20 @@
 #!/bin/bash
 
-# EasySpack Quick Start Demo - Approach #1 (Externals + Dependencies)
+# Spood Quick Start Demo - Approach #1 (Externals + Dependencies)
 # Creates a demo Spack installation with EESSI externals
 
 usage() {
     cat << EOF
 Usage: $(basename "$0") [OPTIONS] [DEMO_DIR]
 
-EasySpack Quick Start Demo - Creates a demo Spack installation with EESSI externals
+Spood Quick Start Demo - Creates a demo Spack installation with EESSI externals
 
 Prerequisites:
   - EESSI environment must be initialized (EESSI_EPREFIX defined)
   - Spack must be installed and available in PATH
 
 Arguments:
-  DEMO_DIR              Directory for demo installation (default: demo_easyspack)
+  DEMO_DIR              Directory for demo installation (default: demo_spood)
 
 Options:
   -h, --help            Show this help message and exit
@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 # Set default demo directory if not provided
-export DEMO_DIR=$(realpath "${DEMO_DIR:-demo_easyspack}")
+export DEMO_DIR=$(realpath "${DEMO_DIR:-demo_spood}")
 
 # Create demo directory if it doesn't exist
 mkdir -p "$DEMO_DIR"
@@ -65,15 +65,15 @@ elif ! spack --version &> /dev/null; then
     # exit 1
 fi
 
-EASYSPACK_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SHARE_DIR="${EASYSPACK_ROOT}/share/spack_config"
-EXAMPLES_DIR="${EASYSPACK_ROOT}/examples/ext_install"
+SPOOD_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SHARE_DIR="${SPOOD_ROOT}/share/spack_config"
+EXAMPLES_DIR="${SPOOD_ROOT}/examples/ext_install"
 EESSI_COMPAT_PKGS_PATHS=(
     "${EESSI_EPREFIX}"
     "${EESSI_EPREFIX}/usr"
 )
 
-echo -e "\033[1;38m============  EasySpack Demo Setup  ============\033[0m"
+echo -e "\033[1;38m============  Spood Demo Setup  ============\033[0m"
 echo -e "\033[1;38m • Demo directory:\033[0m"
 echo "     $DEMO_DIR"
 
@@ -81,7 +81,7 @@ echo "     $DEMO_DIR"
 echo -e "\033[1;38m • Configuring Spack environment variables...\033[0m"
 export SPACK_USER_CONFIG_PATH=$DEMO_DIR
 export SPACK_USER_CACHE_PATH=$DEMO_DIR/cache
-export EASYSPACK_DEBUG=0
+export SPOOD_DEBUG=0
 echo "   - SPACK_USER_CONFIG_PATH=$SPACK_USER_CONFIG_PATH"
 echo "   - SPACK_USER_CACHE_PATH=$SPACK_USER_CACHE_PATH"
 

@@ -32,10 +32,10 @@
 
 
 ## 1. Old approach: create custom upstream database
-- all packages should have runtime and link dependencies declared -- automatically injected by easyspack
+- all packages should have runtime and link dependencies declared -- automatically injected by spood
 - compilers (gcc) should not have dependencies, but have `extra_attributes` with compiler paths
 - `glibc` is detected and dependencies are automatically added
-- `gcc-runtime` is automatically injected by easyspack
+- `gcc-runtime` is automatically injected by spood
 - dependencies are automatically sorted by name by the loader
 - default variants are automatically added by the loader if not specified. This seems the best approach with the current solver
 

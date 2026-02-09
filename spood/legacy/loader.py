@@ -177,7 +177,7 @@ class SpecLoader:
     """
     
     # Hard-coded default database path
-    DEFAULT_DATABASE_PATH = "/home/lercole/easyspack/spack/upstreams/test"
+    DEFAULT_DATABASE_PATH = "/home/lercole/spood/spack/upstreams/test"
 
     def __init__(self, database_path: Optional[str] = None):
         """Initialize the SpecLoader.

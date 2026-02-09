@@ -1,10 +1,10 @@
 """
-Custom exceptions for the easyspack package.
+Custom exceptions for the spood package.
 """
 
 
 class SpecLoaderError(Exception):
-    """Base exception for all easyspack errors."""
+    """Base exception for all spood errors."""
     pass
 
 

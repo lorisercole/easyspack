@@ -1,6 +1,6 @@
 
 # Define the configuration as a dictionary
-# gcc-runtime and glibc dependencies are added by easyspack automatically
+# gcc-runtime and glibc dependencies are added by spood automatically
 
 example_dict = {
     "software_target": "haswell",  # EESSI software architecture
