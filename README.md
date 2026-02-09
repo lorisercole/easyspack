@@ -1,7 +1,7 @@
-# Spood: bridge EESSI/EasyBuild into Spack
+# 🕸️ Spood: connect EESSI into Spack
 
-Spood is a set of utilities that exposes packages built with [EasyBuild](https://easybuild.io) and distributed by [EESSI](https://www.eessi.io) to [Spack](https://spack.io). 
-This makes Spack aware of the available EasyBuild/EESSI installation, thus letting it reuse the available packages when building new ones.
+Spood 🕷️ crawls through packages built with [EasyBuild](https://easybuild.io) and distributed by [EESSI](https://www.eessi.io), discovering their dependencies and weaving them into [Spack](https://spack.io)'s web.
+This makes Spack aware of the available EasyBuild/EESSI installation, letting it reuse these packages when building new ones.
 
 Most of the examples provided consider an existing EESSI installation, but similar logic can be applied to any EasyBuild installation that uses rpaths.
 
