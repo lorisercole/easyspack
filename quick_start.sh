@@ -72,6 +72,7 @@ EESSI_COMPAT_PKGS_PATHS=(
     "${EESSI_EPREFIX}"
     "${EESSI_EPREFIX}/usr"
 )
+EXCLUDE_PKGS=("gcc" "curl" "zlib")
 
 echo -e "\033[1;38m============  Spood Demo Setup  ============\033[0m"
 echo -e "\033[1;38m • Demo directory:\033[0m"
@@ -105,9 +106,10 @@ echo "   - $SHARE_DIR/modules.yaml.tpl -->  $SPACK_USER_CONFIG_PATH/modules.yaml
 # echo "   - $SHARE_DIR/upstreams.yaml.tpl  -->  $SPACK_USER_CONFIG_PATH/upstreams.yaml"
 
 # Copy and rename externals to packages.yaml
-echo -e "\033[1;38m • Creating packages.yaml from externals_nocompat.yaml...\033[0m"
-cp $EXAMPLES_DIR/externals_nocompat.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
-echo "   - $EXAMPLES_DIR/externals_nocompat.yaml  -->  $SPACK_USER_CONFIG_PATH/packages.yaml"
+echo -e "\033[1;38m • Creating packages.yaml from externals_mpi.yaml...\033[0m"
+# cp $EXAMPLES_DIR/externals_nocompat.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
+cp $EXAMPLES_DIR/externals_mpi.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
+echo "   - $EXAMPLES_DIR/externals_mpi.yaml  -->  $SPACK_USER_CONFIG_PATH/packages.yaml"
 
 # Bootstrap Spack
 echo -e "\033[1;38m • Bootstrapping Spack...\033[0m"
@@ -116,8 +118,13 @@ spack bootstrap now > /dev/null 2>&1
 # Detect EESSI compat layer packages
 echo -e "\033[1;38m • Detecting EESSI compat layer packages...\033[0m"
 for path in "${EESSI_COMPAT_PKGS_PATHS[@]}"; do
-    echo "   $ spack external find --all -p $path --exclude gcc"
-    spack external find --all -p "$path" --exclude gcc
+    # Build exclude arguments
+    exclude_args=()
+    for pkg in "${EXCLUDE_PKGS[@]}"; do
+        exclude_args+=("--exclude" "$pkg")
+    done
+    echo "   $ spack external find --all -p $path ${exclude_args[*]}"
+    spack external find --all -p "$path" "${exclude_args[@]}"
 done
 
 echo
@@ -171,3 +178,11 @@ echo
 ldd $(spack location -i quantum-espresso)/bin/pw.x
 echo
 echo -e "\033[1;38m============  End of Demo  ============\033[0m"
+cat << EOF
+
+  To use this demo Spack installation, run:
+
+export SPACK_USER_CONFIG_PATH=$DEMO_DIR
+export SPACK_USER_CACHE_PATH=$DEMO_DIR/cache
+
+EOF

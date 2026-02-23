@@ -85,3 +85,214 @@ $ ldd $(spack location -i quantum-espresso)/bin/pw.x
     libc.so.6 => /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/libc.so.6 (0x00007869afa2f000)
     /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/lib64/ld-linux-x86-64.so.2 (0x00007869b12e4000)
 ```
+
+
+# Feb 2026
+
+## Problematic compat-layer dependencies
+`curl` and `zlib` do not work properly when building a new `cmake` from source (see [this error report](./compat_pkgs_problems.md)). We should exclude them from the automatic detection.
+
+I wonder if dependencies on compat-layer packages are actually needed.
+
+## OpenMPI tests
+I've tried to use EESSI's OpenMPI. It requires many dependencies.
+In particular, `libpciaccess` is needed by the MPI linker. Without it, the `hwloc` library cannot find `libpciaccess` symbols
+```bash
+$ mpicxx -o test test.cpp
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: warning: libpciaccess.so.0, needed by /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/lib/libmpi.so, not found (try using -rpath or -rpath-link)
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_cfg_read'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_system_cleanup'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_slot_match_iterator_create'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_system_init'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_probe'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_next'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_iterator_destroy'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_get_strings'
+```
+
+This is an issue originated from EESSI's OpenMPI installation:
+```bash
+(base) lercole@cecampc21:~/tests/mpicode$ module load OpenMPI/4.1.6-GCC-13.2.0
+(base) lercole@cecampc21:~/tests/mpicode$ mpicxx -o test test.cpp
+# all good here
+
+# but if we unload the libpciaccess module...
+(base) lercole@cecampc21:~/tests/mpicode$ module unload libpciaccess/0.17-GCCcore-13.2.0
+(base) lercole@cecampc21:~/tests/mpicode$ mpicxx -o test test.cpp
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: warning: libpciaccess.so.0, needed by /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/lib/libmpi.so, not found (try using -rpath or -rpath-link)
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_cfg_read'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_system_cleanup'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_slot_match_iterator_create'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_system_init'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_probe'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_device_next'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_iterator_destroy'
+/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/bin/ld: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/hwloc/2.9.2-GCCcore-13.2.0/lib/libhwloc.so.15: undefined reference to `pci_get_strings'
+collect2: error: ld returned 1 exit status
+
+# can be solved if we add /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libpciaccess/0.17-GCCcore-13.2.0/lib64 to LIBRARY_PATH
+# or load the libpciaccess module
+```
+Here is `libmpi.so` library tree, showing the dependencies on `libpciaccess` and `hwloc`:
+```bash
+(base) lercole@cecampc21:/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/lib$ libtree libmpi.so
+libmpi.so.40
+├── libopen-rte.so.40 [rpath]
+│   ├── libopen-pal.so.40 [rpath]
+│   │   ├── libevent_core-2.1.so.7 [rpath]
+│   │   ├── libevent_pthreads-2.1.so.7 [rpath]
+│   │   ├── libhwloc.so.15 [rpath]
+│   │   │   ├── libpciaccess.so.0 [rpath]
+│   │   │   ├── libxml2.so.2 [rpath]
+│   │   │   │   ├── libz.so.1 [rpath]
+│   │   │   │   └── liblzma.so.5 [rpath]
+│   │   │   ├── liblzma.so.5 [rpath]
+│   │   │   └── libz.so.1 [rpath]
+│   │   ├── libpciaccess.so.0 [rpath]
+│   │   ├── libxml2.so.2 [rpath]
+│   │   ├── liblzma.so.5 [rpath]
+│   │   └── libz.so.1 [rpath]
+│   ├── libevent_pthreads-2.1.so.7 [rpath]
+│   ├── libevent_core-2.1.so.7 [rpath]
+│   ├── libhwloc.so.15 [rpath]
+│   ├── libpciaccess.so.0 [rpath]
+│   ├── libxml2.so.2 [rpath]
+│   ├── liblzma.so.5 [rpath]
+│   └── libz.so.1 [rpath]
+├── libopen-pal.so.40 [rpath]
+├── libevent_pthreads-2.1.so.7 [rpath]
+├── libevent_core-2.1.so.7 [rpath]
+├── libhwloc.so.15 [rpath]
+├── libpciaccess.so.0 [rpath]
+├── libxml2.so.2 [rpath]
+├── liblzma.so.5 [rpath]
+└── libz.so.1 [rpath]
+```
+whereas the `libmpi.so` of an OpenMPI built with Spack looks slightly different:
+```bash
+$ libtree libmpi.so
+libmpi.so.40
+├── libopen-pal.so.80 [rpath]
+│   ├── libpmix.so.2 [rpath]
+│   │   ├── libz.so.1 [rpath]
+│   │   ├── libevent_pthreads-2.1.so.7 [rpath]
+│   │   ├── libevent_core-2.1.so.7 [rpath]
+│   │   └── libhwloc.so.15 [rpath]
+│   │       ├── libxml2.so.2 [rpath]
+│   │       │   ├── liblzma.so.5 [rpath]
+│   │       │   └── libiconv.so.2 [rpath]
+│   │       └── libpciaccess.so.0 [rpath]
+│   ├── libevent_core-2.1.so.7 [rpath]
+│   ├── libevent_pthreads-2.1.so.7 [rpath]
+│   └── libhwloc.so.15 [rpath]
+├── libpmix.so.2 [rpath]
+├── libevent_pthreads-2.1.so.7 [rpath]
+├── libevent_core-2.1.so.7 [rpath]
+└── libhwloc.so.15 [rpath]
+```
+
+### QuantumESPRESSO build problem
+When building QuantumESPRESSO with Spack, we get the following error:
+```bash
+1 error found in build log:
+  31    This warning is for project developers.  Use -Wno-dev to suppress it.
+  32
+  33    -- Enable sanitizer QE_ENABLE_SANITIZER=none
+  34    -- C preprocessor used by qe_preprocess_source in qeHelpers.cmake: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/cpp
+  35    -- Performing Test Fortran_ISYSTEM_SUPPORTED
+  36    -- Performing Test Fortran_ISYSTEM_SUPPORTED - Success
+>> 37    CMake Error at /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+ 38      Could NOT find OpenMP_Fortran (missing: OpenMP_Fortran_FLAGS
+  39      OpenMP_Fortran_LIB_NAMES)
+  40    Call Stack (most recent call first):
+  41      /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake:600 (_FPHSA_FAILURE_MESSAGE)
+  42      /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindOpenMP.cmake:577 (find_package_handle_standard_args)
+  43      CMakeLists.txt:304 (find_package)
+```
+This is actually a CMake-related problem. QE calls `cmake` with this flags:
+```bash
+'-DCMAKE_C_COMPILER:STRING=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc'
+'-DCMAKE_Fortran_COMPILER:STRING=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpif90'
+```
+
+If we try to build a simple CMake project with the same flags, we get the same error:
+```bash
+cat > CMakeLists.txt << EOF
+cmake_minimum_required(VERSION 3.14)
+project(TestOpenMP Fortran)
+find_package(MPI REQUIRED)
+find_package(OpenMP REQUIRED)
+message(STATUS "MPI Fortran compiler: ${MPI_Fortran_COMPILER}")
+message(STATUS "OpenMP found: ${OpenMP_FOUND}")
+message(STATUS "OpenMP Fortran flags: ${OpenMP_Fortran_FLAGS}")
+message(STATUS "OpenMP Fortran libraries: ${OpenMP_Fortran_LIBRARIES}")
+EOF
+$ cmake -S . -B build \
+    -DCMAKE_Fortran_COMPILER=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort
+-- The Fortran compiler identification is GNU 13.2.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - failed
+-- Check for working Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort
+-- Check for working Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort - works
+-- Checking whether /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort supports Fortran 90
+-- Checking whether /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort supports Fortran 90 - no
+-- Found MPI_Fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1")  
+CMake Error at /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake:230 (message):
+  Could NOT find OpenMP_Fortran (missing: OpenMP_Fortran_FLAGS
+  OpenMP_Fortran_LIB_NAMES)
+Call Stack (most recent call first):
+  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindPackageHandleStandardArgs.cmake:600 (_FPHSA_FAILURE_MESSAGE)
+  /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindOpenMP.cmake:577 (find_package_handle_standard_args)
+  CMakeLists.txt:4 (find_package)
+
+-- Configuring incomplete, errors occurred!
+```
+But it works if we explicitly specify the OpenMP flags and libraries:
+```bash
+$ cmake -S . -B build \
+    -DCMAKE_Fortran_COMPILER=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort \
+    -DOpenMP_Fortran_FLAGS="-fopenmp" \
+    -DOpenMP_Fortran_LIB_NAMES="gomp" \
+    -DOpenMP_gomp_LIBRARY=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/lib64/libgomp.so
+-- The Fortran compiler identification is GNU 13.2.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - failed
+-- Check for working Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort
+-- Check for working Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort - works
+-- Checking whether /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort supports Fortran 90
+-- Checking whether /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort supports Fortran 90 - no
+-- Found MPI_Fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1")  
+-- Found OpenMP_Fortran: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- MPI Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpifort
+-- OpenMP found: TRUE
+-- OpenMP Fortran flags: -fopenmp
+-- OpenMP Fortran libraries: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/lib64/libgomp.so
+-- Configuring done (1.0s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/lercole/tests/mpifort_cmake/build
+```
+However, the error can be avoided altogether if we do not specify `CMAKE_Fortran_COMPILER``, and let CMake find the Fortran compiler on its own:
+```bash
+$ cmake -S . -B build
+-- The Fortran compiler identification is GNU 13.2.0
+-- Detecting Fortran compiler ABI info
+-- Detecting Fortran compiler ABI info - done
+-- Check for working Fortran compiler: /home/lercole/eessi/spack/opt/linux-skylake/compiler-wrapper-1.0-i54t7tjn3prjyb363kdjgrkiawikdvyu/libexec/spack/gcc/gfortran - skipped
+-- Found MPI_Fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/lib/libmpi_usempif08.so (found version "3.1") 
+-- Found MPI: TRUE (found version "3.1")  
+-- Found OpenMP_Fortran: -fopenmp (found version "4.5") 
+-- Found OpenMP: TRUE (found version "4.5")  
+-- MPI Fortran compiler: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpif90
+-- OpenMP found: TRUE
+-- OpenMP Fortran flags: -fopenmp
+-- OpenMP Fortran libraries: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/lib64/libgomp.so;/cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/lib64/libpthread.a
+-- Configuring done (0.9s)
+-- Generating done (0.0s)
+-- Build files have been written to: /home/lercole/tests/mpifort_cmake/build
+```
+I'm not sure why QE developers added this flag.
+I'm opening an issue to fix the Spack recipe: ...
+

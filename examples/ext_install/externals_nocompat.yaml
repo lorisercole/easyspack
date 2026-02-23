@@ -31,17 +31,12 @@ packages:
       - spec: gcc@13.2.0 target=haswell
   curl:
     externals:
-    - spec: curl@8.3.0+nghttp2 target=haswell
+    - spec: curl@8.3.0+nghttp2 tls=openssl target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/cURL/8.3.0-GCCcore-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
       - spec: zlib@1.2.13  # compat
-        deptypes:
-        - link
       - spec: openssl@1.1.1w  # compat
-        deptypes:
-        - build
-        - link
   libarchive:
     externals:
     - spec: libarchive@3.7.2 target=haswell
@@ -50,7 +45,7 @@ packages:
       - spec: gcc@13.2.0 target=haswell
   cmake:
     externals:
-    - spec: cmake@3.31.8 target=haswell
+    - spec: cmake@3.27.6 target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
