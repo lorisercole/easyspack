@@ -17,16 +17,16 @@ packages:
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/make/4.4.1-GCCcore-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
-  openblas:
-    externals:
-    - spec: openblas@0.3.24~ilp64 threads=openmp target=haswell
-      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenBLAS/0.3.24-GCC-13.2.0
-      dependencies:
-      - spec: gcc@13.2.0 target=haswell
   fftw:
     externals:
     - spec: fftw@3.3.10~mpi+openmp+shared precision=float,double,long_double,quad target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/FFTW/3.3.10-GCC-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0 target=haswell
+  openblas:
+    externals:
+    - spec: openblas@0.3.24~ilp64 threads=openmp target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenBLAS/0.3.24-GCC-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
   curl:
@@ -35,7 +35,7 @@ packages:
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/cURL/8.3.0-GCCcore-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
-      - spec: zlib@1.2.13  # compat
+      # - spec: zlib@1.2.13  # compat
       - spec: openssl@1.1.1w  # compat
   libarchive:
     externals:
@@ -45,30 +45,25 @@ packages:
       - spec: gcc@13.2.0 target=haswell
   cmake:
     externals:
-    - spec: cmake@3.27.6 target=haswell
+    - spec: cmake@3.27.6~ownlibs target=haswell
       prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0
       dependencies:
       - spec: gcc@13.2.0 target=haswell
       - spec: curl@8.3.0 target=haswell
-        deptypes:
-        - build
-        - link
       - spec: ncurses@6.4.20230401  # compat
-        deptypes:
-        - build
-        - link
-      - spec: zlib@1.2.13  # compat
-        deptypes:
-        - build
-        - link
+      # - spec: zlib@1.2.13  # compat
       - spec: libarchive@3.7.2 target=haswell
+      - spec: bzip2@1.0.8  # compat  # not spack
         deptypes:
         - build
         - link
-      - spec: bzip2@1.0.8  # compat
-        deptypes:
-        - link
-      - spec: openssl@1.1.1w  # compat
+      - spec: openssl@1.1.1w  # compat  # not spack
         deptypes:
         - build
         - link
+  ninja:
+    externals:
+    - spec: ninja@1.11.1
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/Ninja/1.11.1-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0 target=haswell

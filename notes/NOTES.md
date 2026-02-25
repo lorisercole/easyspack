@@ -209,7 +209,7 @@ When building QuantumESPRESSO with Spack, we get the following error:
   42      /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/CMake/3.27.6-GCCcore-13.2.0/share/cmake-3.27/Modules/FindOpenMP.cmake:577 (find_package_handle_standard_args)
   43      CMakeLists.txt:304 (find_package)
 ```
-This is actually a CMake-related problem. QE calls `cmake` with this flags:
+This is actually a CMake-related problem. QE calls `cmake` [with these flags](https://github.com/spack/spack-packages/blob/d3a40be2f4c9fffc7a4983db77ec13bbb243bc06/repos/spack_repo/builtin/packages/quantum_espresso/package.py#L476-L479):
 ```bash
 '-DCMAKE_C_COMPILER:STRING=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpicc'
 '-DCMAKE_Fortran_COMPILER:STRING=/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/OpenMPI/4.1.6-GCC-13.2.0/bin/mpif90'

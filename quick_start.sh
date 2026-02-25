@@ -92,6 +92,7 @@ mkdir -p "$DEMO_DIR/cache"
 mkdir -p "$DEMO_DIR/opt"
 
 cd $DEMO_DIR
+cp $SPOOD_ROOT/share/utils/clean.sh .
 
 # Copy/generate configuration files using pre-defined SPACK_USER_CONFIG_PATH
 echo -e "\033[1;38m • Copying/generating Spack configuration files...\033[0m"
@@ -159,23 +160,23 @@ spack compiler list
 # 3. Try a sample spec
 echo
 echo -e "\033[1;38m 3. Concretize a sample spec (reusing externals):\033[0m"
-echo "   $ spack spec -Ilt quantum-espresso~mpi"
+echo "   $ spack spec -Ilt lammps+mpi"
 echo
-spack spec -Ilt "quantum-espresso~mpi"
+spack spec -Ilt "lammps+mpi"
 
 # 4. Install a sample spec
 echo
 echo -e "\033[1;38m 4. Install a sample spec (if desired):\033[0m"
-echo "   $ spack install quantum-espresso~mpi"
+echo "   $ spack install lammps+mpi"
 echo
-spack install "quantum-espresso~mpi"
+spack install "lammps+mpi"
 
 # 5. Verify the installation
 echo
 echo -e "\033[1;38m 5. Verify the installation:\033[0m"
-echo "   $ ldd $(spack location -i quantum-espresso)/bin/pw.x"
+echo "   $ ldd $(spack location -i lammps)/bin/lmp"
 echo
-ldd $(spack location -i quantum-espresso)/bin/pw.x
+ldd $(spack location -i lammps)/bin/lmp
 echo
 echo -e "\033[1;38m============  End of Demo  ============\033[0m"
 cat << EOF

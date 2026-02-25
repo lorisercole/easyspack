@@ -9,6 +9,14 @@ packages:
           c: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gcc
           cxx: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/g++
           fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/13.2.0/bin/gfortran
+    - spec: gcc@12.3.0 languages:='c,c++,fortran' target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/12.3.0
+      dependencies: []
+      extra_attributes:
+        compilers:
+          c: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/12.3.0/bin/gcc
+          cxx: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/12.3.0/bin/g++
+          fortran: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GCCcore/12.3.0/bin/gfortran
   gmake:
     externals:
     - spec: gmake@4.4.1 target=haswell
@@ -73,11 +81,52 @@ packages:
       - spec: libarchive@3.7.2 target=haswell
       - spec: bzip2@1.0.8  # compat  # not spack
         deptypes:
+        - build
         - link
       - spec: openssl@1.1.1w  # compat  # not spack
         deptypes:
         - build
         - link
+  ninja:
+    externals:
+    - spec: ninja@1.11.1
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/compat/linux/x86_64/usr/cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/Ninja/1.11.1-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0 target=haswell
+  icu4c:
+    externals:
+    - spec: icu4c@74.1 target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/ICU/74.1-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0 target=haswell
+  libxsmm:
+    externals:
+    - spec: libxsmm@1.17~debug+generator~header-only~large_jit_buffer+shared blas=default target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libxsmm/1.17-GCC-12.3.0
+      dependencies:
+      - spec: gcc@12.3.0 target=haswell
+  libxc:
+    externals:
+    - spec: libxc@6.2.2~cuda+fortran+kxc+lxc+shared target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/libxc/6.2.2-GCC-12.3.0
+      dependencies:
+      - spec: gcc@12.3.0 target=haswell
+  gmp:
+    externals:
+    - spec: gmp@6.2.1+cxx target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GMP/6.2.1-GCCcore-12.3.0
+      dependencies:
+      - spec: gcc@12.3.0 target=haswell
+    - spec: gmp@6.3.0+cxx target=haswell
+      prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/GMP/6.3.0-GCCcore-13.2.0
+      dependencies:
+      - spec: gcc@13.2.0 target=haswell
+  # libint:
+  #   externals:
+  #   - spec: libint@2.7.2~cxx~debug+fma~fortran~generic+shared build_system=autotools tune=none target=haswell
+  #     prefix: /cvmfs/software.eessi.io/versions/2023.06/software/linux/x86_64/intel/haswell/software/Libint/2.7.2-GCC-12.3.0-lmax-6-cp2k
+  #     dependencies:
+  #     - spec: gcc@12.3.0 target=haswell
   numactl:
     externals:
     - spec: numactl@2.0.16 target=haswell
