@@ -8,19 +8,36 @@ Most of the examples provided consider an existing EESSI installation, but simil
 
 ## Requirements
 - Python 3.7+
-- Spack 1.1+ (ideally Spack 1.2, will include several bug fixes and improvements)
-  > **IMPORTANT**\
-  > To work with EESSI, you currently need a patched version of Spack: https://github.com/lorisercole/spack/tree/eessi\
-  > This includes bug fixes and improvements for EESSI integration.
-- EESSI environment if you want to mirror the published stacks.
-
+- [EESSI environment](https://www.eessi.io/docs/getting_access/is_eessi_accessible/) if you want to mirror the published stacks.
+- *Patched* version of Spack 1.1+. This includes bug fixes and improvements for EESSI integration. See [Installation](#installation--use).
 
 ## Installation & use
-Development installation:
+
+### Prerequisites
+
+- [EESSI installation](https://www.eessi.io/docs/getting_access/is_eessi_accessible/)
+
+- [Spack installation](https://spack.readthedocs.io/en/latest/getting_started.html#getting-started) + patch:
+  ```bash
+  # from a Python virtual environment
+  git clone -b releases/v1.1 https://github.com/spack/spack.git
+
+  # apply patch
+  cd spack
+  curl -L "https://github.com/spack/spack/compare/develop...lorisercole:spack:eessi.diff" | git apply -3
+
+  # activate spack
+  source ./share/spack/setup-env.sh
+  ```
+
+### Spood & EESSI configuration
+Development installation (optional):
 ```bash
-pip install -e .
+git clone https://github.com/lorisercole/spood.git
+pip install -e ./spood
 ```
-Before running examples, make sure that the EESSI is activated, e.g.
+
+Before running examples, **make sure that the EESSI is activated**:
 ```bash
 export EESSI_VERSION=2023.06
 module unuse ${MODULEPATH} && module use /cvmfs/software.eessi.io/init/modules && module load EESSI/${EESSI_VERSION}
@@ -31,9 +48,10 @@ module unuse ${MODULEPATH} && module use /cvmfs/software.eessi.io/init/modules &
   - Set the env variable `SPOOD_DEBUG=1` for verbose logging.
 
 Check the [sections below](#approach-1-preferred-externals--dependencies) for detailed instructions and examples. Three **scripts** are provided:
-  - [`quick_start`](quick_start.sh): demo script showing the *recommended* way to set up Spack to reuse EESSI packages according to [Approach #1](#approach-1-preferred-externals--dependencies).
+  - [`quick_start.sh`](quick_start.sh): **main demo script** showing the *recommended* way to set up Spack to reuse EESSI packages according to [Approach #1](#approach-1-preferred-externals--dependencies).
   - [`external_pkgs_install.py`](external_pkgs_install.py): script to convert a YAML file defining externals into an upstream DB, according to the *experimental* method described in [section #1.b](#1b-experimental-optional-convert-externals-into-an-upstream-database).
   - [`upstreamdb_legacy.py`](upstreamdb_legacy.py): script implementing the *legacy* approach based on a customly-created upstream DB, as described in [Approach #2](#approach-2-legacyobsolete-custom-upstream-db-via-json).
+
 
 ### Spack configuration
 If you want to define a custom Spack user-scope configuration directory, you can set the following env vars, as described in the [documentation](https://spack.readthedocs.io/en/latest/configuration.html#overriding-local-configuration):
