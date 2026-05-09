@@ -108,6 +108,9 @@ echo "   - $SHARE_DIR/modules.yaml.tpl -->  $SPACK_USER_CONFIG_PATH/modules.yaml
 echo -e "\033[1;38m • Creating packages.yaml from externals_nocompat.yaml...\033[0m"
 cp $EXAMPLES_DIR/externals_nocompat.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
 echo "   - $EXAMPLES_DIR/externals_nocompat.yaml  -->  $SPACK_USER_CONFIG_PATH/packages.yaml"
+# Replace the architecture with what EESSI sees and the target with what Spack expects
+sed -i s#x86_64/intel/haswell#${EESSI_SOFTWARE_SUBDIR}#g $SPACK_USER_CONFIG_PATH/packages.yaml
+sed -i s#target=haswell#target=$(spack arch -t)#g $SPACK_USER_CONFIG_PATH/packages.yaml
 
 # Bootstrap Spack
 echo -e "\033[1;38m • Bootstrapping Spack...\033[0m"
