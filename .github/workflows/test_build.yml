@@ -1,0 +1,31 @@
+name: Minimal usage
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-24.04-arm
+          - ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - uses: eessi/github-action-eessi@v3
+      with:
+        eessi_stack_version: '2023.06'
+    - name: Build and test our code
+      run: |
+        # from a Python virtual environment
+        git clone -b releases/v1.1 https://github.com/spack/spack.git
+
+        # apply patch
+        cd spack
+        curl -L "https://github.com/spack/spack/compare/develop...lorisercole:spack:eessi.diff" | git apply -3
+
+        # activate spack
+        source ./share/spack/setup-env.sh
+        # now go back
+        cd ..
+        ./quick_start.sh demo_dir
+      shell: bash

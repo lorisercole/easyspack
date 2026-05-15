@@ -24,7 +24,7 @@ share/python-wheels/
 MANIFEST
 
 # Virtual environments
-venv/
+venv*/
 ENV/
 env/
 .venv
@@ -53,3 +53,4 @@ Thumbs.db
 
 # spood
 demo_spood/
+spack/
