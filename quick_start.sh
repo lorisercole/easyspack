@@ -110,10 +110,12 @@ cp $EXAMPLES_DIR/externals_nocompat.yaml $SPACK_USER_CONFIG_PATH/packages.yaml
 echo "   - $EXAMPLES_DIR/externals_nocompat.yaml  -->  $SPACK_USER_CONFIG_PATH/packages.yaml"
 
 # Replace the architecture with what EESSI sees and the target with what Spack expects
-echo -e "\033[1;38m • Updating packages.yaml for local host\033[0m"
-echo "   - Injecting EESSI architecture ${EESSI_SOFTWARE_SUBDIR}"
+echo -e "\033[1;38m • Updating packages.yaml for local host...\033[0m"
+echo "   - Using EESSI installations for architecture ${EESSI_SOFTWARE_SUBDIR}"
+echo "     (based on EESSI architecture detection for host)"
 sed -i s#x86_64/intel/haswell#${EESSI_SOFTWARE_SUBDIR}#g $SPACK_USER_CONFIG_PATH/packages.yaml
-echo "   - Injecting Spack target $(spack arch -t)"
+echo "   - Telling Spack that these installations correspond to target $(spack arch -t)"
+echo "     (based on Spack architecture detection for host)"
 sed -i s#target=haswell#target=$(spack arch -t)#g $SPACK_USER_CONFIG_PATH/packages.yaml
 
 # Bootstrap Spack
