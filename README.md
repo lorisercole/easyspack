@@ -101,6 +101,13 @@ The first time you want to concretize a new spec that is not yet installed, the 
   - `compiler-wrapper` : Spack's own compiler wrapper, needed to compile packages.
   - anything that is not available as external package, of course.
 
+### Optional: Auto-generating external packages
+
+* EESSI provides a "database" of packages: [`eessi_api_metadata_software.json`](https://www.eessi.io/api_data/data/eessi_api_metadata_software.json)
+* This database might be sufficient (to be tested) to generate a spack
+  `packages.yaml` tracking all EESSI-provided tools as external packages.
+* in `share/eessi_spack/generate_packages.py` we provide some initial work to
+  parse the EESSI "database", and to generate a spack-readable `packages.yaml`
 
 ### Demo Example script
 The [`quick_start.sh`](quick_start.sh) bash script demonstrates the recommended approach to configure a new Spack installation and prepare the `packages.yaml` config file that exposes EESSI-provided packages to Spack.
